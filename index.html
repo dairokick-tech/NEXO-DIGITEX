@@ -30,7 +30,7 @@
 <div class="kpis">
 <div class="card kpi"><div class="kpitop">Ventas del mes <span class="kpiicon" style="background:#e6f2ff;color:#0877e8">▣</span></div><strong>S/ 0.00</strong><small>Sin registros anteriores</small></div>
 <div class="card kpi"><div class="kpitop">Compras del mes <span class="kpiicon" style="background:#e7f8ef;color:#159761">▤</span></div><strong>S/ 0.00</strong><small>Sin registros anteriores</small></div>
-<div class="card kpi"><div class="kpitop">Utilidad estimada <span class="kpiicon" style="background:#fff3df;color:#d88b14">◈</span></div><strong>S/ 0.00</strong><small>Sin registros anteriores</small></div>
+<div class="card kpi"><div class="kpitop">Margen bruto estimado <span class="kpiicon" style="background:#fff3df;color:#d88b14">◈</span></div><strong>S/ 0.00</strong><small>Sin registros anteriores</small></div>
 <div class="card kpi"><div class="kpitop">Caja actual <span class="kpiicon" style="background:#f0eaff;color:#7954d8">▣</span></div><strong>S/ 0.00</strong><small>Sin movimientos registrados</small></div></div>
 <div class="twocol"><div class="card"><div class="cardhead"><h2>Ventas por día</h2><span>Últimos 30 días</span></div><div class="chartbox"><div class="bars" id="bars"></div><div class="chartlabels"><span>01</span><span>05</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span></div></div></div>
 <div class="card"><div class="cardhead"><h2>Ventas por categoría</h2><span>Distribución</span></div><div class="donutwrap"><div class="donut"></div><div class="legend"><span>Sin ventas por categoría registradas</span></div></div></div></div>
@@ -221,7 +221,33 @@ document.getElementById('bars').innerHTML='<div class="emptyhelp" style="width:1
     showPage('inicio');
   }
  }
- async function loadCompanies(isSuperadmin=false,authUser=null){
+ async function refreshDashboard(companyId){
+ const kpis=[...document.querySelectorAll('#page-inicio .kpi strong')],smalls=[...document.querySelectorAll('#page-inicio .kpi small')],summaries=[...document.querySelectorAll('#page-inicio .summary b')],summarySmall=[...document.querySelectorAll('#page-inicio .summary small')];
+ const money=n=>'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}),notice=document.querySelector('#page-inicio .notice');
+ if(!companyId){kpis.forEach((el,i)=>{el.textContent='S/ 0.00';if(smalls[i])smalls[i].textContent='Sin empresa activa para consultar'});if(summaries[0])summaries[0].textContent='No disponible';if(summaries[1])summaries[1].textContent='No disponible';if(summaries[2])summaries[2].textContent='—';if(summaries[3])summaries[3].textContent='Sin movimientos';const bars=document.getElementById('bars');if(bars)bars.innerHTML='<div class="emptyhelp" style="width:100%;padding:20px">Selecciona una empresa aprobada para ver sus operaciones.</div>';return}
+ try{
+  const c=window.nexoClient,now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),1).toISOString(),next=new Date(now.getFullYear(),now.getMonth()+1,1).toISOString(),since=new Date(now.getFullYear(),now.getMonth(),now.getDate()-29).toISOString();
+  const [salesRes,purchasesRes,cashRes,productsRes,movementsRes]=await Promise.all([
+   c.from('nexo_sales').select('id,total,created_at,status').eq('company_id',companyId).eq('status','completed').gte('created_at',start).lt('created_at',next).order('created_at',{ascending:true}),
+   c.from('nexo_purchases').select('total,created_at,status').eq('company_id',companyId).eq('status','received').gte('created_at',start).lt('created_at',next),
+   c.from('nexo_cash_movements').select('movement_type,amount,created_at').eq('company_id',companyId),
+   c.from('nexo_products').select('id,stock,min_stock,active').eq('company_id',companyId).eq('active',true),
+   c.from('nexo_stock_movements').select('id,created_at').eq('company_id',companyId).gte('created_at',since).order('created_at',{ascending:false}).limit(100)
+  ]);
+  const failed=[salesRes,purchasesRes,cashRes,productsRes,movementsRes].find(x=>x.error);if(failed)throw failed.error;
+  const sales=salesRes.data||[],purchases=purchasesRes.data||[],cash=cashRes.data||[],products=productsRes.data||[],movements=movementsRes.data||[];
+  const totalSales=sales.reduce((n,x)=>n+Number(x.total||0),0),totalPurchases=purchases.reduce((n,x)=>n+Number(x.total||0),0);let grossMargin=0;
+  if(sales.length){const itemsRes=await c.from('nexo_sale_items').select('quantity,unit_cost,line_total').in('sale_id',sales.map(x=>x.id));if(itemsRes.error)throw itemsRes.error;grossMargin=(itemsRes.data||[]).reduce((n,x)=>n+Number(x.line_total||0)-Number(x.unit_cost||0)*Number(x.quantity||0),0)}
+  const cashBalance=cash.reduce((n,x)=>n+(x.movement_type==='income'?Number(x.amount||0):x.movement_type==='expense'?-Number(x.amount||0):0),0);
+  [totalSales,totalPurchases,grossMargin,cashBalance].forEach((v,i)=>{if(kpis[i])kpis[i].textContent=money(v)});
+  if(smalls[0])smalls[0].textContent=sales.length+' ventas completadas este mes';if(smalls[1])smalls[1].textContent=purchases.length+' compras recibidas este mes';if(smalls[2])smalls[2].textContent='Ventas menos costo de productos; sin gastos operativos';if(smalls[3])smalls[3].textContent='Saldo neto de movimientos registrados';
+  if(summaries[0])summaries[0].textContent='No disponible';if(summaries[1])summaries[1].textContent='No disponible';if(summarySmall[0])summarySmall[0].textContent='No hay registro de pagos de créditos para calcular el saldo';if(summarySmall[1])summarySmall[1].textContent='No hay módulo de cuentas por pagar conectado';if(summaries[2])summaries[2].textContent=products.filter(p=>Number(p.stock||0)<=Number(p.min_stock||0)).length+' productos';if(summarySmall[2])summarySmall[2].textContent='Stock igual o inferior al mínimo configurado';if(summaries[3])summaries[3].textContent=movements.length+' movimientos';if(summarySmall[3])summarySmall[3].textContent='Movimientos de inventario en los últimos 30 días';
+  const byDay=new Map();sales.forEach(x=>{const d=new Date(x.created_at).toISOString().slice(0,10);byDay.set(d,(byDay.get(d)||0)+Number(x.total||0))});
+  const bars=document.getElementById('bars');if(bars){const days=[];for(let i=29;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),date=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');days.push({date,label:String(d.getDate()).padStart(2,'0'),value:byDay.get(date)||0})}const max=Math.max(0,...days.map(d=>d.value));bars.innerHTML=max?days.map(d=>'<div class="bar" title="'+d.label+': '+money(d.value)+'" style="height:'+Math.max(3,d.value/max*100)+'%"></div>').join(''):'<div class="emptyhelp" style="width:100%;padding:20px">No hay ventas registradas en el período.</div>';const labels=document.querySelector('#page-inicio .chartlabels');if(labels)labels.innerHTML=days.filter((d,i)=>i%5===0||i===29).map(d=>'<span>'+d.label+'</span>').join('')}
+  if(notice)notice.innerHTML='<span>ⓘ</span><div><b>Panel de tu empresa.</b> Indicadores consultados desde Supabase. Si una sección no está conectada, se identifica como no disponible.</div>';
+ }catch(e){console.error('Dashboard NEXO DIGITEX:',e);if(notice){notice.classList.add('module-alert','err');notice.innerHTML='<span>⚠</span><div><b>No se pudieron actualizar los indicadores.</b> '+safe(e.message||'Error de consulta')+'</div>'}}
+}
+async function loadCompanies(isSuperadmin=false,authUser=null){
   try{
    const user=authUser||(await client.auth.getUser()).data.user;
    if(!user)return;
@@ -248,6 +274,7 @@ document.getElementById('bars').innerHTML='<div class="emptyhelp" style="width:1
     }
    }
    applyPlanVisibility();
+   if(!isSuperadmin) await refreshDashboard(activeCompany?.id||null);
    const box=document.querySelector('.company');
    if(box){
     if(isSuperadmin)box.innerHTML='<b>Panel central NEXO DIGITEX</b><small>Superadministrador</small>';
