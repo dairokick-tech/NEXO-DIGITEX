@@ -139,7 +139,7 @@ const heights=[35,52,43,67,56,39,74,48,61,45,80,55,41,65,51,70,47,58,84,63,49,72
     const title=document.getElementById('authTitle'),subtitle=document.getElementById('authSubtitle');
     if(title)title.textContent='Crear contraseña de empresa';
     if(subtitle)subtitle.textContent='Define una contraseña para activar tu acceso aprobado.';
-    ['authEmail','authPassword','signInBtn','requestCompanyBtn'].forEach(id=>{const el=document.getElementById(id);if(el){const wrap=el.closest('label');if(wrap)wrap.style.display='none';else el.style.display='none'}});
+    ['authEmail','authPassword','signInBtn','requestCompanyBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});['authEmail','authPassword'].forEach(id=>{const label=document.querySelector('label[for="'+id+'"]');if(label)label.style.display='none'});
     const old=document.getElementById('setupPasswordBox');if(old)old.remove();
     const box=document.createElement('div');box.id='setupPasswordBox';box.innerHTML='<label for="newCompanyPassword">Nueva contraseña</label><input id="newCompanyPassword" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"><button id="saveCompanyPassword" class="btn primary" style="width:100%;margin-top:14px">Activar mi cuenta</button>';
     document.getElementById('authMessage').before(box);
