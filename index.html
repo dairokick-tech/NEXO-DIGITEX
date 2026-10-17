@@ -53,4 +53,56 @@ const demoRows={ventas:[["V-0001","Venta de ejemplo","S/ 125.00","Pendiente de i
 function showPage(key){document.querySelectorAll('.pageview').forEach(e=>e.classList.remove('active'));document.querySelectorAll('#nav button').forEach(e=>e.classList.toggle('active',e.dataset.page===key));if(key==='inicio'){document.getElementById('page-inicio').classList.add('active')}else{let host=document.getElementById('otherPages');let id='page-'+key;let page=document.getElementById(id);if(!page){page=document.createElement('section');page.className='pageview';page.id=id;let title=moduleInfo[key][0],desc=moduleInfo[key][1];let headers=key==='admin'?['Código','Empresa','Plan','Estado']:['Código','Registro de muestra','Valor','Estado'];page.innerHTML='<div class="heading"><div><h1>'+title+'</h1><p>'+desc+'</p></div><button class="btn" onclick="showPage(\'inicio\')">← Volver al panel</button></div><div class="notice">ⓘ Este módulo está en fase de diseño. Los registros siguientes son demostrativos; aún no se guardan en una base de datos.</div><div class="card"><div class="cardhead"><h2>Vista del módulo</h2><span>Datos de ejemplo</span></div><div class="tablewrap"><table class="table"><thead><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+demoRows[key].map(row=>'<tr>'+row.map((v,i)=>'<td>'+(i===3?'<span class="status warn">'+v+'</span>':v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div><div class="emptyhelp">La siguiente etapa es conectar este módulo con la base de datos segura de NEXO DIGITEX.</div></div>';host.appendChild(page)}document.querySelectorAll('.pageview').forEach(e=>e.classList.remove('active'));page.classList.add('active')}document.getElementById('sidebar').classList.remove('open');window.scrollTo(0,0)}
 document.getElementById('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(b)showPage(b.dataset.page)});document.addEventListener('click',e=>{let b=e.target.closest('button[data-open]');if(b)showPage(b.dataset.open)});document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));document.getElementById('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){let q=e.target.value.toLowerCase();let match=Object.keys(moduleInfo).find(k=>moduleInfo[k][0].toLowerCase().includes(q)||k.includes(q));if(match)showPage(match);else if(q.includes('inicio')||!q)showPage('inicio');else alert('No se encontró el módulo. Prueba: ventas, inventario, compras, clientes, caja, contabilidad, personal, restaurante, farmacia o empresas.')}});document.getElementById('dateBtn').addEventListener('click',()=>alert('Los filtros de fechas se habilitarán al conectar los informes con datos reales.'));
 const heights=[35,52,43,67,56,39,74,48,61,45,80,55,41,65,51,70,47,58,84,63,49,72,57,91,66,76,54,68,59,82];document.getElementById('bars').innerHTML=heights.map(h=>'<div class="bar" style="height:'+h+'%"></div>').join('');
-</script></body></html>
+</script>
+<style>
+#authGate{position:fixed;inset:0;background:#f3f7fcf7;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;overflow:auto}
+.authbox{width:min(460px,100%);background:#fff;border:1px solid #dce7f3;border-radius:18px;padding:25px;box-shadow:0 24px 80px #14365b24}
+.authlogo{display:flex;align-items:center;gap:11px;margin-bottom:22px}.authlogo .brandmark{flex-shrink:0}
+.authbox h2{margin:0 0 6px;color:#112e50}.authbox p{color:#71849a;font-size:13px}.authbox label{display:block;font-size:12px;font-weight:700;margin:14px 0 6px}
+.authbox input{width:100%;border:1px solid #dbe6f2;border-radius:9px;padding:12px;background:#fbfdff}
+.authbox .authactions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:17px}
+.authbox .authmsg{font-size:12px;padding:10px;border-radius:8px;background:#eef6ff;color:#245780;margin-top:12px;display:none}
+.authbox .authmsg.err{background:#fff0f0;color:#a62f39}.authsmall{font-size:11px;color:#7b8da1;margin-top:14px}
+#companyDialog{position:fixed;inset:0;background:#0b285066;z-index:9000;display:none;align-items:center;justify-content:center;padding:16px}
+#companyDialog .authbox{width:min(440px,100%)}
+#companyStatus{font-size:12px;color:#8b6615;background:#fff7e6;padding:10px;border-radius:8px;margin-top:10px}
+</style>
+<div id="authGate"><div class="authbox">
+<div class="authlogo"><div class="brandmark">N</div><div><strong style="font-size:19px;color:#0b2850">NEXO DIGITEX</strong><div style="font-size:12px;color:#71849a">ERP + SaaS para tu negocio</div></div></div>
+<h2 id="authTitle">Ingresa a tu empresa</h2><p id="authSubtitle">Accede de forma segura a tu espacio de trabajo.</p>
+<label for="authEmail">Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" placeholder="tu@empresa.com">
+<label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
+<div class="authactions"><button class="btn primary" id="signInBtn">Iniciar sesión</button><button class="btn" id="signUpBtn">Crear cuenta</button></div>
+<div id="authMessage" class="authmsg"></div><div class="authsmall">Las cuentas nuevas pueden requerir confirmar el correo. El acceso a una empresa depende de su aprobación y permisos.</div>
+</div></div>
+<div id="companyDialog"><div class="authbox"><h2>Solicitar registro de empresa</h2><p>La empresa quedará pendiente hasta que el superadministrador la apruebe.</p><label for="companyName">Nombre de la empresa</label><input id="companyName" placeholder="Mi Empresa S.A.C."><label for="companyTax">RUC (opcional)</label><input id="companyTax" inputmode="numeric" maxlength="11" placeholder="11 dígitos"><div class="authactions"><button class="btn primary" id="companySave">Enviar solicitud</button><button class="btn" id="companyCancel">Cancelar</button></div><div id="companyMsg" class="authmsg"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+ const SUPABASE_URL="https://jznbuxqgsmvjkcgdbigv.supabase.co";
+ const SUPABASE_KEY="sb_publishable_3a3d38-EqFwPMKdDOqiO3Q_1XvdfZbW";
+ const gate=document.getElementById('authGate'), msg=document.getElementById('authMessage');
+ let client=null, authMode='signin';
+ function message(el,text,isError){el.textContent=text;el.style.display='block';el.classList.toggle('err',!!isError)}
+ function setupClient(){if(!window.supabase||!window.supabase.createClient){message(msg,'No se pudo cargar el servicio de autenticación. Revisa tu conexión e inténtalo de nuevo.',true);return false}client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);return true}
+ function showGate(){gate.style.display='flex';document.querySelector('.layout').style.display='none'}
+ function hideGate(){gate.style.display='none';document.querySelector('.layout').style.display=''}
+ async function sessionCheck(){if(!setupClient())return;const {data,error}=await client.auth.getSession();if(error||!data.session){showGate();return}hideGate();await loadCompanies()}
+ async function loadCompanies(){try{const {data:userData}=await client.auth.getUser();if(!userData.user)return;const {data,error}=await client.from('nexo_companies').select('id,name,status,created_at').order('created_at',{ascending:false});if(error)throw error;
+ const own=(data||[]).filter(c=>c.status==='approved');const pending=(data||[]).filter(c=>c.status==='pending');
+ const box=document.querySelector('.company');if(box){box.innerHTML='<b>'+(own[0]?safe(own[0].name):'Mi espacio de trabajo')+'</b><small>'+(own[0]?'Empresa aprobada':pending.length?'Solicitud pendiente de aprobación':'Aún no tienes empresa aprobada')+'</small>'}
+ const side=document.querySelector('.sidebarfoot');if(side)side.innerHTML='Sesión autenticada<br>'+safe(userData.user.email||'Usuario')+'<br><button id="logoutBtn" class="btn" style="margin-top:10px;font-size:11px;padding:6px 9px">Cerrar sesión</button>';
+ const old=document.getElementById('companyRequestBtn');if(!old){const b=document.createElement('button');b.id='companyRequestBtn';b.className='btn primary';b.textContent='＋ Solicitar empresa';b.style.marginLeft='8px';document.querySelector('.heading').appendChild(b);b.onclick=()=>{document.getElementById('companyDialog').style.display='flex'};}
+ if(pending.length){const notice=document.querySelector('#page-inicio .notice');if(notice){notice.innerHTML='<span>ⓘ</span><div><b>Tu cuenta está autenticada.</b> La solicitud de empresa está pendiente de aprobación. Los módulos empresariales permanecerán bloqueados hasta que la empresa sea aprobada.</div>';}}
+ const logout=document.getElementById('logoutBtn');if(logout)logout.onclick=async()=>{await client.auth.signOut();location.reload()};
+ }catch(e){console.error(e);}}
+ function safe(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ document.getElementById('signInBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){message(msg,'Escribe tu correo y contraseña.',true);return}const {error}=await client.auth.signInWithPassword({email,password});if(error){message(msg,error.message,true);return}message(msg,'Sesión iniciada. Cargando…',false);location.reload()};
+ document.getElementById('signUpBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<8){message(msg,'Escribe un correo válido y una contraseña de al menos 8 caracteres.',true);return}const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin}});if(error){message(msg,error.message,true);return}message(msg,data.session?'Cuenta creada. Entrando…':'Cuenta creada. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.',false)};
+ document.getElementById('companyCancel').onclick=()=>document.getElementById('companyDialog').style.display='none';
+ document.getElementById('companySave').onclick=async()=>{const cm=document.getElementById('companyMsg');const name=document.getElementById('companyName').value.trim(),tax=document.getElementById('companyTax').value.trim();if(!name){message(cm,'Escribe el nombre de la empresa.',true);return}if(tax&&(!/^\d{11}$/.test(tax))){message(cm,'El RUC debe tener 11 dígitos o quedar vacío.',true);return}const {data:{user}}=await client.auth.getUser();if(!user){message(cm,'Inicia sesión nuevamente.',true);return}const {error}=await client.from('nexo_companies').insert({name,tax_id:tax||null,created_by:user.id,status:'pending'});if(error){message(cm,'No se pudo enviar la solicitud: '+error.message,true);return}message(cm,'Solicitud enviada. La empresa debe ser aprobada por el superadministrador.',false);setTimeout(()=>location.reload(),1300)};
+ sessionCheck();
+})();
+</script>
+
+</body></html>
