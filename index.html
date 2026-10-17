@@ -128,15 +128,76 @@ const heights=[35,52,43,67,56,39,74,48,61,45,80,55,41,65,51,70,47,58,84,63,49,72
  function setupClient(){if(!window.supabase||!window.supabase.createClient){message(msg,'No se pudo cargar el servicio de autenticación. Revisa tu conexión e inténtalo de nuevo.',true);return false}client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);window.nexoClient=client;return true}
  function showGate(){gate.style.display='flex';document.querySelector('.layout').style.display='none'}
  function hideGate(){gate.style.display='none';document.querySelector('.layout').style.display=''}
- async function sessionCheck(){if(!setupClient())return;const {data,error}=await client.auth.getSession();if(error||!data.session){showGate();return}hideGate();await loadCompanies()}
- async function loadCompanies(){try{const {data:userData}=await client.auth.getUser();if(!userData.user)return;const {data,error}=await client.from('nexo_companies').select('id,name,status,created_at').order('created_at',{ascending:false});if(error)throw error;
- const own=(data||[]).filter(c=>c.status==='approved');window.nexoCompanyId=own[0]?.id||null;const pending=(data||[]).filter(c=>c.status==='pending');
- const box=document.querySelector('.company');if(box){box.innerHTML='<b>'+(own[0]?safe(own[0].name):'Mi espacio de trabajo')+'</b><small>'+(own[0]?'Empresa aprobada':pending.length?'Solicitud pendiente de aprobación':'Aún no tienes empresa aprobada')+'</small>'}
- const side=document.querySelector('.sidebarfoot');if(side)side.innerHTML='Sesión autenticada<br>'+safe(userData.user.email||'Usuario')+'<br><button id="logoutBtn" class="btn" style="margin-top:10px;font-size:11px;padding:6px 9px">Cerrar sesión</button>';
- const openCompanyDialog=()=>{document.getElementById('companyDialog').style.display='flex'};const globalCompanyBtn=document.getElementById('globalCompanyBtn');if(globalCompanyBtn)globalCompanyBtn.onclick=openCompanyDialog;const old=document.getElementById('companyRequestBtn');if(old)old.remove();
- if(pending.length){const notice=document.querySelector('#page-inicio .notice');if(notice){notice.innerHTML='<span>ⓘ</span><div><b>Tu cuenta está autenticada.</b> La solicitud de empresa está pendiente de aprobación. Los módulos empresariales permanecerán bloqueados hasta que la empresa sea aprobada.</div>';}}
- const doLogout=async()=>{const {error}=await client.auth.signOut();if(error){alert('No se pudo cerrar sesión: '+error.message);return}location.reload()};const logout=document.getElementById('logoutBtn');if(logout)logout.onclick=doLogout;const globalLogout=document.getElementById('globalLogoutBtn');if(globalLogout)globalLogout.onclick=doLogout;
- }catch(e){console.error(e);}}
+ async function sessionCheck(){
+  if(!setupClient())return;
+  const {data,error}=await client.auth.getSession();
+  if(error||!data.session){showGate();return}
+  const {data:authData,error:authError}=await client.auth.getUser();
+  const user=authData?.user;
+  if(authError||!user){showGate();return}
+  const {data:profile,error:profileError}=await client.from('nexo_profiles').select('platform_role').eq('id',user.id).maybeSingle();
+  if(profileError){message(msg,'No se pudieron verificar tus permisos. Intenta nuevamente.',true);showGate();return}
+  const isSuperadmin=profile?.platform_role==='superadmin';
+  if(accessMode==='admin'&&!isSuperadmin){
+    await client.auth.signOut();
+    showGate();
+    message(msg,'Acceso denegado: esta entrada es exclusiva del Superadministrador.',true);
+    return;
+  }
+  hideGate();
+  const adminNav=document.querySelector('#nav button[data-page="admin"]');
+  if(adminNav)adminNav.style.display=isSuperadmin?'':'none';
+  const globalCompanyBtn=document.getElementById('globalCompanyBtn');
+  if(globalCompanyBtn)globalCompanyBtn.style.display=isSuperadmin?'none':'';
+  const userlabel=document.querySelector('.userlabel');
+  if(userlabel){userlabel.querySelector('b').textContent=isSuperadmin?'Superadministrador':'Usuario empresarial';const sub=userlabel.querySelector('div');if(sub)sub.textContent=isSuperadmin?'Control central NEXO DIGITEX':'Espacio de tu empresa';}
+  if(isSuperadmin){
+    window.nexoCompanyId=null;
+    const box=document.querySelector('.company');
+    if(box)box.innerHTML='<b>Panel central NEXO DIGITEX</b><small>Sesión de Superadministrador</small>';
+    await loadCompanies(true,user);
+    showPage('admin');
+  }else{
+    await loadCompanies(false,user);
+    showPage('inicio');
+  }
+ }
+ async function loadCompanies(isSuperadmin=false,authUser=null){
+  try{
+   const user=authUser||(await client.auth.getUser()).data.user;
+   if(!user)return;
+   let memberships=[];
+   const {data:membershipData}=await client.from('nexo_memberships').select('company_id,role,active').eq('user_id',user.id).eq('active',true);
+   memberships=membershipData||[];
+   const {data,error}=await client.from('nexo_companies').select('id,name,status,created_at,created_by').order('created_at',{ascending:false});
+   if(error)throw error;
+   const relatedIds=new Set(memberships.map(m=>m.company_id));
+   const own=(data||[]).filter(c=>c.status==='approved'&&(c.created_by===user.id||relatedIds.has(c.id)));
+   const pending=(data||[]).filter(c=>c.created_by===user.id&&c.status==='pending');
+   window.nexoCompanyId=isSuperadmin?null:(own[0]?.id||null);
+   const box=document.querySelector('.company');
+   if(box){
+    if(isSuperadmin)box.innerHTML='<b>Panel central NEXO DIGITEX</b><small>Superadministrador</small>';
+    else box.innerHTML='<b>'+(own[0]?safe(own[0].name):'Mi espacio de trabajo')+'</b><small>'+(own[0]?'Empresa aprobada':pending.length?'Solicitud pendiente de aprobación':'Sin empresa autorizada')+'</small>';
+   }
+   const side=document.querySelector('.sidebarfoot');
+   if(side)side.innerHTML='Sesión autenticada<br>'+safe(user.email||'Usuario')+'<br><button id="logoutBtn" class="btn" style="margin-top:10px;font-size:11px;padding:6px 9px">Cerrar sesión</button>';
+   const openCompanyDialog=()=>{const d=document.getElementById('companyDialog');if(d)d.style.display='flex'};
+   if(globalCompanyBtn&&!isSuperadmin)globalCompanyBtn.onclick=openCompanyDialog;
+   const old=document.getElementById('companyRequestBtn');if(old&&isSuperadmin)old.remove();
+   if(!isSuperadmin&&pending.length){
+    const notice=document.querySelector('#page-inicio .notice');
+    if(notice)notice.innerHTML='<span>ⓘ</span><div><b>Solicitud pendiente de aprobación.</b> Los módulos empresariales estarán disponibles cuando el Superadministrador apruebe tu empresa.</div>';
+   }
+   if(!isSuperadmin&&!own.length){
+    const notice=document.querySelector('#page-inicio .notice');
+    if(notice)notice.innerHTML='<span>ⓘ</span><div><b>No tienes una empresa aprobada asignada.</b> Solicita la creación de tu empresa o contacta al Superadministrador para que te asigne acceso.</div>';
+   }
+   const doLogout=async()=>{const {error}=await client.auth.signOut();if(error){alert('No se pudo cerrar sesión: '+error.message);return}location.reload()};
+   const logout=document.getElementById('logoutBtn');if(logout)logout.onclick=doLogout;
+   const globalLogout=document.getElementById('globalLogoutBtn');if(globalLogout)globalLogout.onclick=doLogout;
+  }catch(e){console.error(e);message(msg,'No se pudo cargar tu espacio de trabajo: '+(e.message||'error desconocido'),true);}
+ }
  function safe(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  document.getElementById('signInBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){message(msg,'Escribe tu correo y contraseña.',true);return}const {error}=await client.auth.signInWithPassword({email,password});if(error){message(msg,error.message,true);return}message(msg,'Sesión iniciada. Cargando…',false);location.reload()};
  document.getElementById('signUpBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<8){message(msg,'Escribe un correo válido y una contraseña de al menos 8 caracteres.',true);return}const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin}});if(error){message(msg,error.message,true);return}message(msg,data.session?'Cuenta creada. Entrando…':'Cuenta creada. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.',false)};
