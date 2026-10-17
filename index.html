@@ -129,8 +129,33 @@ const heights=[35,52,43,67,56,39,74,48,61,45,80,55,41,65,51,70,47,58,84,63,49,72
  function hideGate(){gate.style.display='none';document.querySelector('.layout').style.display=''}
  async function sessionCheck(){
   if(!setupClient())return;
-  const {data,error}=await client.auth.getSession();
-  if(error||!data.session){showGate();if(new URLSearchParams(location.search).get('setup')==='1')message(msg,'El enlace de creación de cuenta no está activo. Abre el enlace más reciente recibido por correo.',true);return}
+  let {data,error}=await client.auth.getSession();
+  const setupMode=new URLSearchParams(location.search).get('setup')==='1';
+  if(setupMode&&!data?.session){
+    // Los enlaces de invitación pueden regresar como PKCE (?code=...) o como tokens en el fragmento (#access_token=...).
+    const currentUrl=new URL(location.href);
+    const code=currentUrl.searchParams.get('code');
+    if(code){
+      const exchanged=await client.auth.exchangeCodeForSession(code);
+      if(!exchanged.error){const current=await client.auth.getSession();data=current.data;error=current.error;}
+    }
+    if(!data?.session){
+      const hash=new URLSearchParams(location.hash.replace(/^#/,''));
+      const access_token=hash.get('access_token'),refresh_token=hash.get('refresh_token');
+      if(access_token&&refresh_token){
+        const restored=await client.auth.setSession({access_token,refresh_token});
+        if(!restored.error){const current=await client.auth.getSession();data=current.data;error=current.error;}
+      }
+    }
+  }
+  if(error||!data?.session){
+    showGate();
+    if(setupMode){
+      const authErrorText=new URLSearchParams(location.search).get('error_description');
+      message(msg,authErrorText?'El enlace no se pudo validar: '+decodeURIComponent(authErrorText.replace(/\\+/g,' ')):'No se encontró una sesión válida. Abre el enlace más reciente de invitación que recibiste por correo. Si ya venció, el Superadministrador debe reenviar la invitación.',true);
+    }
+    return;
+  }
   const {data:authData,error:authError}=await client.auth.getUser();
   const user=authData?.user;
   if(authError||!user){showGate();return}
