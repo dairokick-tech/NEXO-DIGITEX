@@ -227,7 +227,9 @@ document.getElementById('bars').innerHTML='<div class="emptyhelp" style="width:1
    const relatedIds=new Set(memberships.map(m=>m.company_id));
    const own=(data||[]).filter(c=>c.status==='approved'&&(c.created_by===user.id||relatedIds.has(c.id)));
    const pending=(data||[]).filter(c=>c.created_by===user.id&&c.status==='pending');
-   window.nexoCompanyId=isSuperadmin?null:(own[0]?.id||null);
+   const requestedCompanyId=new URLSearchParams(window.location.search).get('empresa');
+   const activeCompany=own.find(c=>c.id===requestedCompanyId)||own[0]||null;
+   window.nexoCompanyId=isSuperadmin?null:(activeCompany?.id||null);
    window.nexoIsSuperadmin=!!isSuperadmin;
    window.nexoAllowedModules=[];
    window.nexoPlanName='';
