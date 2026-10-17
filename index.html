@@ -138,7 +138,7 @@ const heights=[35,52,43,67,56,39,74,48,61,45,80,55,41,65,51,70,47,58,84,63,49,72
  const SUPABASE_URL="https://jznbuxqgsmvjkcgdbigv.supabase.co";
  const SUPABASE_KEY="sb_publishable_3a3d38-EqFwPMKdDOqiO3Q_1XvdfZbW";
  const gate=document.getElementById('authGate'), msg=document.getElementById('authMessage');
- let client=null; const accessMode=new URLSearchParams(location.search).get('access')||'client'; const authTitle=document.querySelector('#authGate h1, #authGate h2'); if(authTitle)authTitle.textContent='Acceso para empresas';
+ let client=null; const accessMode=new URLSearchParams(location.search).get('access')==='admin'?'admin':'client'; const authTitle=document.getElementById('authTitle'); const authSubtitle=document.getElementById('authSubtitle'); const requestCompanyBtn=document.getElementById('requestCompanyBtn'); const authSmall=document.querySelector('#authGate .authsmall'); if(authTitle)authTitle.textContent=accessMode==='admin'?'Acceso Superadministrador':'Acceso para empresas'; if(authSubtitle)authSubtitle.textContent=accessMode==='admin'?'Entrada exclusiva para la cuenta Superadministrador autorizada.':'Inicia sesión si tu empresa ya tiene acceso aprobado.'; if(requestCompanyBtn)requestCompanyBtn.style.display=accessMode==='admin'?'none':''; if(authSmall)authSmall.textContent=accessMode==='admin'?'Solo la cuenta con rol Superadministrador verificado puede ingresar al panel central.':'Si aún no tienes empresa registrada, solicita el acceso. La cuenta se habilitará después de la aprobación del Superadministrador.'; const authActions=document.querySelector('#authGate .authactions'); if(authActions&&accessMode==='admin')authActions.style.gridTemplateColumns='1fr';
  function message(el,text,isError){el.textContent=text;el.style.display='block';el.classList.toggle('err',!!isError)}
  function setupClient(){if(!window.supabase||!window.supabase.createClient){message(msg,'No se pudo cargar el servicio de autenticación. Revisa tu conexión e inténtalo de nuevo.',true);return false}client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);window.nexoClient=client;return true}
  function showGate(){gate.style.display='flex';document.querySelector('.layout').style.display='none'}
@@ -194,6 +194,12 @@ const heights=[35,52,43,67,56,39,74,48,61,45,80,55,41,65,51,70,47,58,84,63,49,72
     await client.auth.signOut();
     showGate();
     message(msg,'Acceso denegado: esta entrada es exclusiva del Superadministrador.',true);
+    return;
+  }
+  if(accessMode==='client'&&isSuperadmin){
+    await client.auth.signOut();
+    showGate();
+    message(msg,'Esta cuenta pertenece al Superadministrador. Usa el enlace exclusivo de Superadministrador para ingresar al panel central.',true);
     return;
   }
   hideGate();
