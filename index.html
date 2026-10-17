@@ -234,8 +234,8 @@ document.getElementById('bars').innerHTML='<div class="emptyhelp" style="width:1
    window.nexoAllowedModules=[];
    window.nexoPlanName='';
    if(isSuperadmin){window.nexoAllowedModules=Object.keys(moduleInfo).filter(k=>k!=='admin');}
-   else if(own[0]){
-    const {data:subscription}=await client.from('nexo_subscriptions').select('plan_id,status').eq('company_id',own[0].id).eq('status','active').maybeSingle();
+   else if(activeCompany){
+    const {data:subscription}=await client.from('nexo_subscriptions').select('plan_id,status').eq('company_id',activeCompany.id).eq('status','active').maybeSingle();
     if(subscription?.plan_id){
      const {data:plan}=await client.from('nexo_plans').select('name,features,active').eq('id',subscription.plan_id).maybeSingle();
      if(plan&&plan.active){window.nexoAllowedModules=normalizePlanModules(plan.features);window.nexoPlanName=plan.name||'Plan activo';}
@@ -245,7 +245,7 @@ document.getElementById('bars').innerHTML='<div class="emptyhelp" style="width:1
    const box=document.querySelector('.company');
    if(box){
     if(isSuperadmin)box.innerHTML='<b>Panel central NEXO DIGITEX</b><small>Superadministrador</small>';
-    else box.innerHTML='<b>'+(own[0]?safe(own[0].name):'Mi espacio de trabajo')+'</b><small>'+(own[0]?'Empresa aprobada · '+safe(window.nexoPlanName||'sin plan activo'):pending.length?'Solicitud pendiente de aprobación':'Sin empresa autorizada')+'</small>';
+    else box.innerHTML='<b>'+(activeCompany?safe(activeCompany.name):'Mi espacio de trabajo')+'</b><small>'+(activeCompany?'Empresa aprobada · '+safe(window.nexoPlanName||'sin plan activo'):pending.length?'Solicitud pendiente de aprobación':'Sin empresa autorizada')+'</small>';
    }
    const side=document.querySelector('.sidebarfoot');
    if(side)side.innerHTML='Sesión autenticada<br>'+safe(user.email||'Usuario')+'<br><button id="logoutBtn" class="btn" style="margin-top:10px;font-size:11px;padding:6px 9px">Cerrar sesión</button>';
