@@ -85,7 +85,7 @@
   if(company.phone)details.push("Tel. "+esc(company.phone));
   if(company.contact_email)details.push(esc(company.contact_email));
   if(company.tax_id)details.push("RUC: "+esc(company.tax_id));
-  if(company.whatsapp)details.push('<a style="color:#246653;font-weight:700" target="_blank" rel="noopener" href="https://wa.me/'+phoneDigits(company.whatsapp)+'">Escribir por WhatsApp ↗</a>');
+  if(company.whatsapp)details.push('<a style="color:#0877e8;font-weight:700" target="_blank" rel="noopener" href="https://wa.me/'+phoneDigits(company.whatsapp)+'">Escribir por WhatsApp ↗</a>');
   $("contactDetails").innerHTML=details.join("<br>")||"Contacta con la tienda para más información.";
   renderFilters();renderProducts();renderCart();
  }
