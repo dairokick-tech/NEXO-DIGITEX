@@ -94,7 +94,8 @@ async function setCompanyStatus(id,status){const c=window.nexoClient;if(!confirm
 function normalizePlanModules(features){
  const allKeys=Object.keys(moduleInfo).filter(k=>k!=="admin");
  if(!features||typeof features!=="object")return [];
- if(features.todos_los_modulos===true||features.plan_unico===true)return allKeys;
+ // Si el plan guarda una lista explícita, esa lista es la autoridad:
+ // las banderas generales no deben ampliar sus permisos accidentalmente.
  const raw=Array.isArray(features.modules)?features.modules:Object.keys(features).filter(k=>features[k]===true);
  const aliases={reportes:"contabilidad",empleados:"rrhh",personal:"rrhh",proveedores:"compras",ventas_pos:"ventas",kardex:"inventario"};
  return [...new Set(raw.map(k=>aliases[k]||k).filter(k=>allKeys.includes(k)))];
