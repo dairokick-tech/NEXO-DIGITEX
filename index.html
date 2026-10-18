@@ -495,7 +495,7 @@ async function loadCompanies(isSuperadmin=false,authUser=null){
    let memberships=[];
    const {data:membershipData}=await client.from('nexo_memberships').select('company_id,role,active').eq('user_id',user.id).eq('active',true);
    memberships=membershipData||[];
-   const {data,error}=await client.from('nexo_companies').select('id,name,status,created_at,created_by').order('created_at',{ascending:false});
+   const {data,error}=await client.from('nexo_companies').select('id,name,status,created_at,created_by,email,contact_email').order('created_at',{ascending:false});
    if(error)throw error;
    const relatedIds=new Set(memberships.map(m=>m.company_id));
    const requestedCompanyId=new URLSearchParams(window.location.search).get('empresa');
@@ -512,9 +512,14 @@ async function loadCompanies(isSuperadmin=false,authUser=null){
    window.nexoPlanName='';
    if(isSuperadmin){window.nexoAllowedModules=Object.keys(moduleInfo).filter(k=>k!=='admin');}
    if(!isSuperadmin&&activeCompany){
-    const {data:subscription}=await client.from('nexo_subscriptions').select('plan_id,status').eq('company_id',activeCompany.id).eq('status','active').maybeSingle();
+    // Puede haber suscripciones antiguas; no usar maybeSingle(), que falla si hay más de una activa.
+    const {data:subscriptions, error:subscriptionError}=await client.from('nexo_subscriptions').select('*').eq('company_id',activeCompany.id).eq('status','active').order('created_at',{ascending:false}).limit(10);
+    if(subscriptionError)console.error('No se pudo consultar el plan empresarial:',subscriptionError);
+    const today=new Date();today.setHours(0,0,0,0);
+    const subscription=(subscriptions||[]).find(x=>!x.manually_suspended&&(!x.ends_at||new Date(x.ends_at)>=today));
     if(subscription?.plan_id){
-     const {data:plan}=await client.from('nexo_plans').select('name,features,active').eq('id',subscription.plan_id).maybeSingle();
+     const {data:plan,error:planError}=await client.from('nexo_plans').select('name,features,active').eq('id',subscription.plan_id).maybeSingle();
+     if(planError)console.error('No se pudo consultar la configuración del plan:',planError);
      if(plan&&plan.active){window.nexoAllowedModules=normalizePlanModules(plan.features);window.nexoPlanName=plan.name||'Plan activo';}
     }
    }
