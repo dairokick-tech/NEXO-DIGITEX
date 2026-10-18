@@ -309,9 +309,9 @@ function applyPlanVisibility(){
   if(!button)return;
   const k=button.dataset.open;
   if(k==="farmacia"||k==="restaurante"){card.style.setProperty('display','none','important');return;}
-  // Si no se ha podido cargar el plan, mantener visible el catálogo para evitar un panel vacío.
-  // showPage valida el permiso antes de abrir cada módulo; esto no concede acceso adicional.
-  const show=(k==="admin"?isAdmin:(isAdmin||allowed.has(k)||!hasPlan));
+  // Mostrar únicamente módulos asignados al plan activo; sin plan válido no se habilitan módulos.
+  // La misma lista se valida también al abrir cada módulo.
+  const show=(k==="admin"?isAdmin:(isAdmin||allowed.has(k)));
   card.style.setProperty('display',show?'flex':'none','important');
   card.style.setProperty('visibility','visible','important');
  });
@@ -677,17 +677,8 @@ body.stats-mode #page-inicio .summaryrow{display:grid}
 </style>
 
 <style>
-/* Último refuerzo para que las tarjetas de módulos se rendericen en el panel principal. */
-#page-inicio #mainModulesContent{display:block!important;visibility:visible!important;height:auto!important;overflow:visible!important}
+/* Mantener visible la zona del catálogo, pero respetar display asignado por applyPlanVisibility(). */
+#page-inicio #mainModulesContent{visibility:visible!important;height:auto!important;overflow:visible!important}
 #page-inicio #mainModulesContent .modules{display:grid!important;visibility:visible!important}
 #page-inicio #mainModulesContent .module{visibility:visible!important}
-#page-inicio #mainModulesContent .module[style*="display: flex"]{display:flex!important}
-/* Mostrar el catálogo para que no quede un espacio vacío en cuentas empresariales.
-   La autorización real sigue validándose dentro de showPage() al pulsar cada tarjeta. */
-#page-inicio #mainModulesContent .module{display:flex!important;visibility:visible!important}
-#page-inicio #mainModulesContent [data-open="farmacia"],
-#page-inicio #mainModulesContent [data-open="restaurante"]{display:none!important}
-body.stats-mode #page-inicio #mainModulesContent{display:block!important}
-body.stats-mode #page-inicio #mainModulesContent .modules{display:grid!important}
-body.stats-mode #page-inicio .moduleshead{display:flex!important}
 </style>
