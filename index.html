@@ -682,4 +682,12 @@ body.stats-mode #page-inicio .summaryrow{display:grid}
 #page-inicio #mainModulesContent .modules{display:grid!important;visibility:visible!important}
 #page-inicio #mainModulesContent .module{visibility:visible!important}
 #page-inicio #mainModulesContent .module[style*="display: flex"]{display:flex!important}
+/* Mostrar el catálogo para que no quede un espacio vacío en cuentas empresariales.
+   La autorización real sigue validándose dentro de showPage() al pulsar cada tarjeta. */
+#page-inicio #mainModulesContent .module{display:flex!important;visibility:visible!important}
+#page-inicio #mainModulesContent [data-open="farmacia"],
+#page-inicio #mainModulesContent [data-open="restaurante"]{display:none!important}
+body.stats-mode #page-inicio #mainModulesContent{display:block!important}
+body.stats-mode #page-inicio #mainModulesContent .modules{display:grid!important}
+body.stats-mode #page-inicio .moduleshead{display:flex!important}
 </style>
