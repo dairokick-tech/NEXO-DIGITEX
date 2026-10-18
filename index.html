@@ -723,17 +723,3 @@ body.stats-mode #page-inicio .summaryrow{display:grid}
 </script>
 
 </body></html>
-<style>
-/* Corrección de emergencia: el catálogo de módulos no debe desaparecer por reglas CSS heredadas. */
-#mainModulesContent{display:block!important}
-#mainModulesContent[hidden]{display:block!important}
-#page-inicio .module{visibility:visible}
-#nav button[data-page]{align-items:center}
-</style>
-
-<style>
-/* Mantener visible la zona del catálogo, pero respetar display asignado por applyPlanVisibility(). */
-#page-inicio #mainModulesContent{visibility:visible!important;height:auto!important;overflow:visible!important}
-#page-inicio #mainModulesContent .modules{display:grid!important;visibility:visible!important}
-#page-inicio #mainModulesContent .module{visibility:visible!important}
-</style>
