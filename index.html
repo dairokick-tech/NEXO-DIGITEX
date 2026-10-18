@@ -451,6 +451,7 @@ setupDashboardToggles();
 <label for="authEmail">Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" placeholder="tu@empresa.com">
 <label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
 <div class="authactions"><button class="btn primary" id="signInBtn">Iniciar sesión</button><button class="btn" id="requestCompanyBtn" type="button" onclick="document.getElementById('companyDialog').style.display='flex'">Solicitar registro de empresa</button></div>
+<button class="btn" id="forgotPasswordBtn" type="button" style="width:100%;margin-top:10px">Olvidé mi contraseña</button>
 <div id="authMessage" class="authmsg"></div><div class="authsmall">Si aún no tienes empresa registrada, solicita el acceso. La cuenta se habilitará después de la aprobación del Superadministrador.</div>
 </div></div>
 <div id="companyDialog"><div class="authbox"><h2>Solicitar registro de empresa</h2><p>Completa los datos. No se creará una cuenta ni se enviará el correo de acceso hasta que el Superadministrador apruebe la solicitud.</p><label for="companyName">Nombre de la empresa</label><input id="companyName" required placeholder="Mi Empresa S.A.C."><label for="companyTax">RUC</label><input id="companyTax" inputmode="numeric" maxlength="11" required placeholder="11 dígitos"><label for="companyRepresentative">Nombre del representante</label><input id="companyRepresentative" required autocomplete="name" placeholder="Nombre y apellidos"><label for="companyDni">DNI del representante</label><input id="companyDni" inputmode="numeric" maxlength="8" required placeholder="8 dígitos"><label for="companyEmail">Correo electrónico</label><input id="companyEmail" type="email" required autocomplete="email" placeholder="correo@empresa.com"><label for="companyPlan">Plan solicitado</label><select id="companyPlan" required><option value="">Cargando planes disponibles…</option></select><div id="companyPlanInfo" class="authsmall">Elige el plan que deseas solicitar. El Superadministrador confirmará el plan al aprobar la empresa.</div><div class="authactions"><button class="btn primary" id="companySave">Enviar solicitud</button><button class="btn" id="companyCancel" type="button" onclick="document.getElementById(\'companyDialog\').style.display=\'none\'">Cancelar</button></div><div id="companyMsg" class="authmsg"></div></div></div>
@@ -469,7 +470,8 @@ setupDashboardToggles();
   if(!setupClient())return;
   let {data,error}=await client.auth.getSession();
   const setupMode=new URLSearchParams(location.search).get('setup')==='1';
-  if(setupMode&&!data?.session){
+  const resetMode=new URLSearchParams(location.search).get('reset')==='1';
+  if((setupMode||resetMode)&&!data?.session){
     // Los enlaces de invitación pueden regresar como PKCE (?code=...) o como tokens en el fragmento (#access_token=...).
     const currentUrl=new URL(location.href);
     const code=currentUrl.searchParams.get('code');
@@ -488,15 +490,29 @@ setupDashboardToggles();
   }
   if(error||!data?.session){
     showGate();
-    if(setupMode){
+    if(setupMode||resetMode){
       const authErrorText=new URLSearchParams(location.search).get('error_description');
-      message(msg,authErrorText?'El enlace no se pudo validar: '+decodeURIComponent(authErrorText.replace(/\\+/g,' ')):'No se encontró una sesión válida. Abre el enlace más reciente de invitación que recibiste por correo. Si ya venció, el Superadministrador debe reenviar la invitación.',true);
+      const fallback=resetMode?'No se encontró una sesión válida para restablecer la contraseña. Solicita un enlace nuevo y ábrelo en este mismo navegador.':'No se encontró una sesión válida. Abre el enlace más reciente de invitación que recibiste por correo. Si ya venció, el Superadministrador debe reenviar la invitación.';
+      message(msg,authErrorText?'El enlace no se pudo validar: '+decodeURIComponent(authErrorText.replace(/\\+/g,' ')):fallback,true);
     }
     return;
   }
   const {data:authData,error:authError}=await client.auth.getUser();
   const user=authData?.user;
   if(authError||!user){showGate();return}
+  if(resetMode){
+    showGate();
+    const title=document.getElementById('authTitle'),subtitle=document.getElementById('authSubtitle');
+    if(title)title.textContent='Restablecer contraseña';
+    if(subtitle)subtitle.textContent='Escribe una contraseña nueva para recuperar tu acceso.';
+    ['authEmail','authPassword','signInBtn','requestCompanyBtn','forgotPasswordBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+    ['authEmail','authPassword'].forEach(id=>{const label=document.querySelector('label[for="'+id+'"]');if(label)label.style.display='none'});
+    const old=document.getElementById('resetPasswordBox');if(old)old.remove();
+    const box=document.createElement('div');box.id='resetPasswordBox';box.innerHTML='<label for="recoveryNewPassword">Nueva contraseña</label><input id="recoveryNewPassword" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"><button id="saveRecoveryPassword" class="btn primary" style="width:100%;margin-top:14px">Guardar contraseña</button>';
+    document.getElementById('authMessage').before(box);
+    document.getElementById('saveRecoveryPassword').onclick=async()=>{const password=document.getElementById('recoveryNewPassword').value;if(password.length<8){message(msg,'La contraseña debe tener al menos 8 caracteres.',true);return}const btn=document.getElementById('saveRecoveryPassword');btn.disabled=true;const {error}=await client.auth.updateUser({password});if(error){message(msg,'No se pudo guardar la contraseña: '+error.message,true);btn.disabled=false;return}message(msg,'Contraseña actualizada. Volviendo al inicio de sesión…',false);await client.auth.signOut();setTimeout(()=>location.replace(location.pathname+(accessMode==='admin'?'?access=admin':'?access=client')),700)};
+    return;
+  }
   if(new URLSearchParams(location.search).get('setup')==='1'){
     showGate();
     const title=document.getElementById('authTitle'),subtitle=document.getElementById('authSubtitle');
@@ -519,9 +535,7 @@ setupDashboardToggles();
     return;
   }
   if(accessMode==='client'&&isSuperadmin){
-    await client.auth.signOut();
-    showGate();
-    message(msg,'Esta cuenta pertenece al Superadministrador. Usa el enlace exclusivo de Superadministrador para ingresar al panel central.',true);
+    location.replace(location.pathname+'?access=admin');
     return;
   }
   hideGate();
@@ -630,7 +644,8 @@ async function loadCompanies(isSuperadmin=false,authUser=null){
   }catch(e){console.error(e);message(msg,'No se pudo cargar tu espacio de trabajo: '+(e.message||'error desconocido'),true);}
  }
  function safe(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
- document.getElementById('signInBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){message(msg,'Escribe tu correo y contraseña.',true);return}const {error}=await client.auth.signInWithPassword({email,password});if(error){message(msg,error.message,true);return}message(msg,'Sesión iniciada. Cargando…',false);location.reload()};
+ document.getElementById('signInBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){message(msg,'Escribe tu correo y contraseña.',true);return}const btn=document.getElementById('signInBtn');btn.disabled=true;const {error}=await client.auth.signInWithPassword({email,password});btn.disabled=false;if(error){const text=/invalid login credentials/i.test(error.message)?'Correo o contraseña incorrectos. Pulsa “Olvidé mi contraseña” para recuperar el acceso.':/email not confirmed/i.test(error.message)?'Debes confirmar el correo electrónico antes de ingresar. Revisa tu bandeja de entrada.':error.message;message(msg,text,true);return}message(msg,'Sesión iniciada. Verificando tus permisos…',false);location.reload()};
+ document.getElementById('forgotPasswordBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim();if(!email){message(msg,'Escribe tu correo electrónico y luego pulsa “Olvidé mi contraseña”.',true);document.getElementById('authEmail').focus();return}const btn=document.getElementById('forgotPasswordBtn');btn.disabled=true;const redirectTo=location.origin+location.pathname+'?access='+accessMode+'&reset=1';const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo});btn.disabled=false;if(error){message(msg,'No se pudo enviar la recuperación: '+error.message,true);return}message(msg,'Si el correo está registrado, recibirás un enlace para cambiar la contraseña. Revisa también Spam o Correo no deseado.',false)};
  async function openCompanyRequest(){document.getElementById('authGate').style.display='none';document.querySelector('.layout').style.display='none';document.getElementById('companyDialog').style.display='flex';document.getElementById('companyMsg').style.display='none';const sel=document.getElementById('companyPlan');if(!client&&!setupClient())return;sel.innerHTML='<option value="">Cargando planes disponibles…</option>';const {data,error}=await client.from('nexo_plans').select('id,name,monthly_price').eq('active',true).order('monthly_price');if(error){sel.innerHTML='<option value="">No se pudieron cargar los planes</option>';message(document.getElementById('companyMsg'),'No se pudieron cargar los planes. Intenta nuevamente.',true);return}if(!data||!data.length){sel.innerHTML='<option value="">No hay planes disponibles</option>';return}sel.innerHTML='<option value="">Selecciona un plan</option>'+data.map(p=>'<option value="'+p.id+'">'+String(p.name).replace(/[&<>\"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]))+' — S/ '+Number(p.monthly_price).toFixed(2)+'/mes</option>').join('');sel.onchange=()=>{const p=data.find(x=>x.id===sel.value);document.getElementById('companyPlanInfo').textContent=p?'Plan solicitado: '+p.name+' · S/ '+Number(p.monthly_price).toFixed(2)+' al mes. Su activación depende de la aprobación.':'Elige el plan que deseas solicitar. El Superadministrador confirmará el plan al aprobar la empresa.'}}document.getElementById('requestCompanyBtn').onclick=openCompanyRequest;
  document.getElementById('companyCancel').onclick=()=>{document.getElementById('companyDialog').style.display='none';document.getElementById('authGate').style.display='flex';};const globalCompanyBtn=document.getElementById('globalCompanyBtn');if(globalCompanyBtn)globalCompanyBtn.onclick=openCompanyRequest;
  document.getElementById('companySave').onclick=async()=>{if(!client&&!setupClient())return;const cm=document.getElementById('companyMsg');const name=document.getElementById('companyName').value.trim(),tax=document.getElementById('companyTax').value.trim(),representative=document.getElementById('companyRepresentative').value.trim(),dni=document.getElementById('companyDni').value.trim(),email=document.getElementById('companyEmail').value.trim().toLowerCase(),requested_plan_id=document.getElementById('companyPlan').value;if(!name||!representative||!email||!tax||!dni||!requested_plan_id){message(cm,'Completa todos los campos y selecciona un plan.',true);return}if(!/^\d{11}$/.test(tax)){message(cm,'El RUC debe tener exactamente 11 dígitos.',true);return}if(!/^\d{8}$/.test(dni)){message(cm,'El DNI debe tener exactamente 8 dígitos.',true);return}const {error}=await client.from('nexo_companies').insert({name,tax_id:tax,representative_name:representative,representative_dni:dni,email,contact_email:email,requested_plan_id,created_by:null,status:'pending'});if(error){message(cm,'No se pudo enviar la solicitud: '+error.message,true);return}message(cm,'Solicitud enviada correctamente. El Superadministrador revisará los datos; el acceso y el correo para crear la cuenta se habilitarán después de la aprobación.',false);document.getElementById('companySave').disabled=true;};
