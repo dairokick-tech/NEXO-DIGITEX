@@ -279,11 +279,11 @@ return}
 async function setCompanyStatus(id,status){const c=window.nexoClient;if(!confirm("¿Confirmas cambiar el estado de la empresa a "+status+"?"))return;const {error}=await c.from("nexo_companies").update({status}).eq("id",id);if(error){alert("No se pudo actualizar: "+error.message);return}showPage("admin")}
 const planAssignableModules=["ventas","inventario","compras","clientes","caja","contabilidad","rrhh","restaurante","farmacia","tienda_online","cotizaciones","devoluciones","sucursales","facturacion","cuentas_pagar","activos","auditoria","delivery"];
 function normalizePlanModules(features){
- // Solo estos módulos se pueden asignar desde los planes por ahora.
  const allKeys=planAssignableModules;
  if(!features||typeof features!=="object")return [];
- // Si el plan guarda una lista explícita, esa lista es la autoridad:
- // las banderas generales no deben ampliar sus permisos accidentalmente.
+ // Compatibilidad con planes antiguos que guardaban una bandera de acceso total.
+ // La lista explícita "modules" sigue siendo la autoridad cuando existe.
+ if(!Array.isArray(features.modules)&&(features.todos_los_modulos===true||features.plan_unico===true))return [...allKeys];
  const raw=Array.isArray(features.modules)?features.modules:Object.keys(features).filter(k=>features[k]===true);
  const aliases={reportes:"contabilidad",empleados:"rrhh",personal:"rrhh",proveedores:"compras",ventas_pos:"ventas",kardex:"inventario",tienda:"tienda_online",store:"tienda_online",online_store:"tienda_online"};
  return [...new Set(raw.map(k=>aliases[k]||k).filter(k=>allKeys.includes(k)))];
