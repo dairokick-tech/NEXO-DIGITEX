@@ -347,8 +347,7 @@ function applyPlanVisibility(){
  const hasPlan=allowed.size>0;
  document.querySelectorAll('#nav button[data-page]').forEach(b=>{
   const k=b.dataset.page;
-  // El menú lateral solo muestra Inicio; los módulos se abren desde sus iconos en la pantalla principal.
-  const show=(k==="inicio");
+  const show=(k==="admin"?isAdmin:(k==="configuracion"?!isAdmin:(k==="inicio"||k==="estadisticas"||isAdmin||allowed.has(k)));
   b.style.setProperty('display',show?'flex':'none','important');
  });
  document.querySelectorAll('#page-inicio .module').forEach(card=>{
@@ -746,9 +745,10 @@ body.stats-mode #page-inicio .summaryrow{display:grid}
 #page-inicio #mainModulesContent .module{visibility:visible!important}
 </style>
 
-<style id="nexo-ocultar-lista-duplicada-final">
-/* Corrección final: esta regla va al final para prevalecer sobre estilos antiguos del archivo. */
+<style id="nexo-menu-solo-iconos">
+/* Mantener los módulos y sus permisos; ocultar solo los nombres del menú lateral y conservar los iconos clicables. */
 #sidebar .navlabel{display:none!important}
-#sidebar #nav button[data-page]{display:none!important}
-#sidebar #nav button[data-page="inicio"]{display:flex!important}
+#sidebar #nav button[data-page]{font-size:0!important;justify-content:center!important;gap:0!important;padding-left:8px!important;padding-right:8px!important}
+#sidebar #nav button[data-page] .ico{display:inline-flex!important;font-size:21px!important;line-height:1!important;visibility:visible!important;opacity:1!important}
+#sidebar #nav button[data-page]{min-height:44px!important}
 </style>
