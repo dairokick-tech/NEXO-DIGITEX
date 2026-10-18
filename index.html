@@ -744,3 +744,10 @@ body.stats-mode #page-inicio .summaryrow{display:grid}
 #page-inicio #mainModulesContent .modules{display:grid!important;visibility:visible!important}
 #page-inicio #mainModulesContent .module{visibility:visible!important}
 </style>
+
+<style id="nexo-ocultar-lista-duplicada-final">
+/* Corrección final: esta regla va al final para prevalecer sobre estilos antiguos del archivo. */
+#sidebar .navlabel{display:none!important}
+#sidebar #nav button[data-page]{display:none!important}
+#sidebar #nav button[data-page="inicio"]{display:flex!important}
+</style>
