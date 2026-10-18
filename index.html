@@ -92,7 +92,37 @@ img,svg,canvas,video{max-width:100%;height:auto}
 </style>
 <style>
 .entry-choice{display:flex;gap:10px;margin:0 0 14px;flex-wrap:wrap}.entry-choice a{font-size:12px;text-decoration:none;padding:9px 12px;border:1px solid #dce6f1;border-radius:9px;color:#245078}.entry-choice a.active{background:#173c61;color:#fff}.plan-editor{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.plan-editor label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#4d657e}.plan-editor input,.plan-editor select{padding:10px;border:1px solid #dce6f1;border-radius:8px}.plan-editor .wide{grid-column:1/-1}.feature-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.feature-checks label{display:flex;align-items:center;gap:7px}.plan-table{width:100%;border-collapse:collapse}.plan-table th,.plan-table td{text-align:left;padding:11px;border-bottom:1px solid #e8eef5;font-size:12px}.plan-table input[type=number]{width:95px;padding:7px;border:1px solid #dce6f1;border-radius:7px}@media(max-width:600px){.plan-editor{grid-template-columns:1fr}.plan-editor .wide{grid-column:auto}}
-</style></head>
+</style>
+<style id="nexo-responsive-per-icon">
+/* Ajustar cada formulario al tamaño útil de pantalla, según el módulo/icono seleccionado */
+#moduleBody,#moduleBody .data-card,#moduleBody .card,#moduleBody .module-toolbar{width:100%;max-width:100%;min-width:0}
+#moduleBody .module-form{width:100%;max-width:100%;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));align-items:start}
+#moduleBody .module-form .field{min-width:0;max-width:100%;overflow-wrap:anywhere}
+#moduleBody .module-form .field input,#moduleBody .module-form .field select,#moduleBody .module-form .field textarea{width:100%;min-width:0;max-width:100%;font-size:16px}
+#moduleBody .module-form .wide,#moduleBody .module-form .form-actions{grid-column:1/-1}
+#moduleBody .tablewrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#moduleBody .table{width:100%;min-width:640px}
+#moduleBody .module-toolbar{flex-wrap:wrap}
+#moduleBody .module-alert{overflow-wrap:anywhere}
+#moduleBody #editProductPanel{width:100%;max-width:100%;overflow:hidden}
+#moduleBody #editProductPanel .module-form{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+#moduleBody #barcodeScanVideo{max-width:100%}
+@media(max-width:700px){
+ #moduleBody .module-form,#moduleBody #editProductPanel .module-form{grid-template-columns:minmax(0,1fr)}
+ #moduleBody .module-form .wide,#moduleBody .module-form .form-actions{grid-column:1}
+ #moduleBody .module-toolbar .btn{max-width:100%;white-space:normal}
+ #moduleBody .data-card .cardhead{flex-wrap:wrap}
+ #moduleBody .table{min-width:590px}
+ #moduleBody .module-form{padding:12px}
+}
+@media(min-width:701px) and (max-width:1100px){
+ #moduleBody .module-form,#moduleBody #editProductPanel .module-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(min-width:1101px){
+ #moduleBody .module-form,#moduleBody #editProductPanel .module-form{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+}
+</style>
+</head>
 <body>
 <div class="layout">
 <aside class="sidebar" id="sidebar"><div class="brand"><div class="brandmark">N</div><div><strong>NEXO DIGITEX</strong><small>ERP + SaaS para tu negocio</small></div></div>
