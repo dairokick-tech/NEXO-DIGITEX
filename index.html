@@ -246,32 +246,6 @@ async function renderUniversalPOS(page,body,alert,company){
   }finally{btn.disabled=false}
  };
  body.querySelector("#posTestPrinter").onclick=()=>{const w=window.open("","_blank","width=420,height=420");if(!w){showMessage("El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio.",true);return}const pf=body.querySelector("#posPrintFormat").value,pw=pf==="58"?"48mm":pf==="a4"?"190mm":"72mm",ps=pf==="a4"?"A4":"auto";w.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prueba de impresora</title><style>body{font:14px Arial;text-align:center;padding:8px;width:'+pw+';max-width:100%;margin:0 auto;box-sizing:border-box}h2{font-size:18px}button{padding:10px 16px}@page{size:'+ps+';margin:5mm}@media print{button{display:none}}</style><body><h2>'+esc(companyInfo.name||"NEXO DIGITEX")+'</h2><p>PRUEBA DE IMPRESIÓN</p><p>Formato: '+esc(pf==="a4"?"A4 / factura":"Ticket "+pf+" mm")+'</p><p>Si puedes leer este texto, la impresora seleccionada está imprimiendo correctamente.</p><p>'+esc(new Date().toLocaleString("es-PE"))+'</p><button onclick="window.print()">Elegir impresora e imprimir</button>
-<style id="nexo-iconos-clicables">
-/* Los iconos de las tarjetas también deben abrir su módulo al tocarlos en móvil. */
-#page-inicio .module .modicon{cursor:pointer;pointer-events:auto;position:relative;z-index:2}
-#page-inicio .module .modicon:focus{outline:2px solid var(--primary,#2563eb);outline-offset:3px}
-</style>
-<script id="nexo-iconos-clicables">
-(function(){
- function abrirModuloDesdeIcono(e){
-  const icono=e.target.closest('#page-inicio .module .modicon');
-  if(!icono)return;
-  const tarjeta=icono.closest('.module');
-  const boton=tarjeta&&tarjeta.querySelector('button[data-open]');
-  if(!boton)return;
-  e.preventDefault();
-  if(typeof window.showPage==='function'){window.showPage(boton.dataset.open);}
-  else {boton.click();}
- }
- document.addEventListener('click',abrirModuloDesdeIcono,true);
- document.querySelectorAll('#page-inicio .module .modicon').forEach(function(el){
-  el.setAttribute('role','button');el.setAttribute('tabindex','0');
-  el.setAttribute('aria-label','Abrir módulo '+((el.closest('.module')?.querySelector('h3')?.textContent)||''));
-  el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
- });
-})();
-</script>
-
 </body></html>');w.document.close()};
  body.querySelector("#posNewProductToggle").onclick=()=>{const f=body.querySelector("#posNewProductForm");f.style.display=f.style.display==="none"?"block":"none"};body.querySelector("#posNewProductForm").onsubmit=async e=>{e.preventDefault();const f=e.currentTarget,m=body.querySelector("#posNewProductMessage"),b=f.querySelector("button[type=submit]"),data=new FormData(f);b.disabled=true;m.textContent="Guardando…";const payload={company_id:company,name:String(data.get("name")||"").trim(),sku:String(data.get("sku")||"").trim()||null,barcode:String(data.get("barcode")||"").trim()||null,category:String(data.get("category")||"").trim()||null,cost:Number(data.get("cost")||0),price:Number(data.get("price")||0),stock:Number(data.get("stock")||0),min_stock:0,unit:"unidad",active:true};const {error}=await client.from("nexo_products").insert(payload);if(error){m.textContent="No se pudo guardar: "+error.message}else{m.textContent="Producto creado.";f.reset();f.style.display="none";await load()}b.disabled=false};body.querySelector("#posClear").onclick=()=>{cart=[];renderCart();message.style.display="none"};
  body.querySelector("#posSaveQr").onclick=async()=>{const file=body.querySelector("#posQrFile").files[0],m=body.querySelector("#posQrMessage"),b=body.querySelector("#posSaveQr");if(!file){m.textContent="Selecciona primero una imagen QR.";return}if(file.size>5*1024*1024){m.textContent="La imagen no puede superar 5 MB.";return}b.disabled=true;m.textContent="Guardando QR…";try{const ext=(file.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"");const path=company+"/"+Date.now()+"-qr."+ext;const up=await client.storage.from("nexo-payment-qrs").upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;const url=client.storage.from("nexo-payment-qrs").getPublicUrl(path).data.publicUrl;const upd=await client.from("nexo_companies").update({payment_qr_url:url}).eq("id",company);if(upd.error)throw upd.error;companyInfo.payment_qr_url=url;m.textContent="QR guardado correctamente.";updateQr()}catch(err){m.textContent="No se pudo guardar el QR: "+(err.message||"Error")}finally{b.disabled=false}};
