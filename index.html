@@ -288,9 +288,9 @@ const planAssignableModules=["ventas","inventario","compras","clientes","caja","
 function normalizePlanModules(features){
  const allKeys=planAssignableModules;
  if(!features||typeof features!=="object")return [];
- // Compatibilidad con planes antiguos que guardaban una bandera de acceso total.
- // La lista explícita "modules" sigue siendo la autoridad cuando existe.
- if(!Array.isArray(features.modules)&&(features.todos_los_modulos===true||features.plan_unico===true))return [...allKeys];
+ // Los planes marcados como acceso total deben habilitar todos los módulos aunque tengan modules:[].
+ // Este caso existe en el plan "Plan Único Empresarial" guardado en Supabase.
+ if(features.todos_los_modulos===true||features.plan_unico===true)return [...allKeys];
  const raw=Array.isArray(features.modules)?features.modules:Object.keys(features).filter(k=>features[k]===true);
  const aliases={reportes:"contabilidad",empleados:"rrhh",personal:"rrhh",proveedores:"compras",ventas_pos:"ventas",kardex:"inventario",tienda:"tienda_online",store:"tienda_online",online_store:"tienda_online"};
  return [...new Set(raw.map(k=>aliases[k]||k).filter(k=>allKeys.includes(k)))];
