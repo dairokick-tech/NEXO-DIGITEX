@@ -541,6 +541,29 @@ async function loadCompanies(isSuperadmin=false,authUser=null){
 #nexoAiSend{border:0;background:#0877e8;color:white;border-radius:10px;padding:0 13px;font-weight:800}
 #nexoAiSend:disabled{opacity:.55}
 @media(max-width:480px){#nexoAiWidget{right:12px;bottom:12px}#nexoAiToggle{padding:12px 15px}#nexoAiPanel{right:-2px;bottom:58px}}
+
+/* Inicio tipo mosaico de iconos NEXO DIGITEX: aplica a empresa y Superadministrador */
+#page-inicio .heading{align-items:center}
+#page-inicio .heading h1{color:#0b4384;font-size:22px}
+#page-inicio .moduleshead{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;padding:0 2px}
+#page-inicio .moduleshead h2{font-size:17px;color:#06478f}
+#page-inicio .modules{grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+#page-inicio .module{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:104px;padding:10px 6px;border:1px solid #cfe1f5;border-radius:7px;background:linear-gradient(180deg,#fff,#fafdff);box-shadow:none;overflow:hidden}
+#page-inicio .module:hover{border-color:#54a6ee;background:#f2f8ff;transform:translateY(-2px)}
+#page-inicio .module .modtop{display:flex;flex-direction:column;align-items:center;gap:5px;margin:0}
+#page-inicio .module .modicon{width:48px;height:46px;border-radius:0;background:transparent;color:#07529a;font-size:34px;line-height:1}
+#page-inicio .module h3{font-size:12px;line-height:1.25;color:#073c7c;margin:0;min-height:30px;display:flex;align-items:center;justify-content:center}
+#page-inicio .module p{display:none}
+#page-inicio .module button{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0;margin:0;z-index:3}
+#page-inicio .module:focus-within{outline:2px solid #1688e8;outline-offset:1px}
+#page-inicio .architecture{grid-template-columns:1fr;gap:10px;margin-top:12px}
+#page-inicio .architecture .card{border:1px solid #cfe1f5;box-shadow:none}
+#page-inicio .archsteps{grid-template-columns:repeat(4,minmax(0,1fr))}
+#page-inicio .archstep{background:#fff;border-color:#cfe1f5;border-radius:6px}
+#page-inicio .notice{border-color:#cfe1f5}
+@media(max-width:1250px){#page-inicio .modules{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:760px){#page-inicio .modules{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#page-inicio .module{min-height:95px;padding:8px 4px}#page-inicio .module .modicon{font-size:29px;width:40px;height:38px}#page-inicio .module h3{font-size:11px}#page-inicio .archsteps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1500px){#page-inicio .modules{grid-template-columns:repeat(7,minmax(0,1fr))}}
 </style>
 <div id="nexoAiWidget">
   <section id="nexoAiPanel" aria-label="Asistente de IA">
