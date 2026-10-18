@@ -498,16 +498,20 @@ async function loadCompanies(isSuperadmin=false,authUser=null){
    const {data,error}=await client.from('nexo_companies').select('id,name,status,created_at,created_by').order('created_at',{ascending:false});
    if(error)throw error;
    const relatedIds=new Set(memberships.map(m=>m.company_id));
-   const own=(data||[]).filter(c=>c.status==='approved'&&(c.created_by===user.id||relatedIds.has(c.id)));
-   const pending=(data||[]).filter(c=>c.created_by===user.id&&c.status==='pending');
    const requestedCompanyId=new URLSearchParams(window.location.search).get('empresa');
-   const activeCompany=own.find(c=>c.id===requestedCompanyId)||own[0]||null;
-   window.nexoCompanyId=isSuperadmin?null:(activeCompany?.id||null);
+   const userEmail=String(user.email||'').trim().toLowerCase();
+   // Vincular también por correo verificado cuando la solicitud se creó antes de guardar created_by/membership.
+   const own=(data||[]).filter(c=>c.status==='approved'&&(c.created_by===user.id||relatedIds.has(c.id)||String(c.email||c.contact_email||'').trim().toLowerCase()===userEmail));
+   const pending=(data||[]).filter(c=>(c.created_by===user.id||String(c.email||c.contact_email||'').trim().toLowerCase()===userEmail)&&c.status==='pending');
+   // Superadministrador puede abrir una empresa concreta desde el botón Configurar del panel central.
+   const selectedForAdmin=isSuperadmin&&requestedCompanyId?(data||[]).find(c=>c.id===requestedCompanyId&&c.status==='approved'):null;
+   const activeCompany=selectedForAdmin||own.find(c=>c.id===requestedCompanyId)||own[0]||null;
+   window.nexoCompanyId=activeCompany?.id||null;
    window.nexoIsSuperadmin=!!isSuperadmin;
    window.nexoAllowedModules=[];
    window.nexoPlanName='';
    if(isSuperadmin){window.nexoAllowedModules=Object.keys(moduleInfo).filter(k=>k!=='admin');}
-   else if(activeCompany){
+   if(!isSuperadmin&&activeCompany){
     const {data:subscription}=await client.from('nexo_subscriptions').select('plan_id,status').eq('company_id',activeCompany.id).eq('status','active').maybeSingle();
     if(subscription?.plan_id){
      const {data:plan}=await client.from('nexo_plans').select('name,features,active').eq('id',subscription.plan_id).maybeSingle();
