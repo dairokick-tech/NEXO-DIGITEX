@@ -347,7 +347,8 @@ function applyPlanVisibility(){
  const hasPlan=allowed.size>0;
  document.querySelectorAll('#nav button[data-page]').forEach(b=>{
   const k=b.dataset.page;
-  const show=(k==="admin"?isAdmin:(k==="configuracion"?!isAdmin:(k==="inicio"||k==="estadisticas"||isAdmin||allowed.has(k))));
+  // El menú lateral solo muestra Inicio; los módulos se abren desde sus iconos en la pantalla principal.
+  const show=(k==="inicio");
   b.style.setProperty('display',show?'flex':'none','important');
  });
  document.querySelectorAll('#page-inicio .module').forEach(card=>{
