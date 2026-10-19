@@ -977,10 +977,11 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
 .nexo-rubric-title h2{font-size:23px;margin:0;color:#123b63}
 .nexo-rubric-title p{font-size:12px;margin:4px 0 0;color:#6a7f93}
 .nexo-module-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.nexo-module-tile{position:relative;appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:0;min-height:126px;padding:15px 9px;border:1px solid #d2dfeb;border-radius:10px;background:#fff;color:#173c60;text-align:center;transition:transform .15s,border-color .15s}
+.nexo-module-tile{z-index:2;cursor:pointer;pointer-events:auto;touch-action:manipulation;position:relative;appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:0;min-height:126px;padding:15px 9px;border:1px solid #d2dfeb;border-radius:10px;background:#fff;color:#173c60;text-align:center;transition:transform .15s,border-color .15s}
 .nexo-module-tile:hover:not(:disabled){transform:translateY(-2px);border-color:#65ace6;background:#f8fcff}
 .nexo-module-tile:disabled{opacity:.56;background:#f2f5f8;cursor:not-allowed}
 .nexo-module-tile .nexo-rubric-icon{width:51px;height:51px;border-radius:12px;background:#eef5fc}
+.nexo-module-tile .nexo-rubric-icon,.nexo-module-tile .nexo-rubric-icon *{pointer-events:none}
 .nexo-module-tile .nexo-rubric-icon svg{width:28px;height:28px}
 .nexo-module-tile strong{font-size:12px;line-height:1.35}
 .nexo-module-tile small{font-size:10px;color:#8a651c}
@@ -1075,21 +1076,27 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
    },350);
    return;
   }
-  const nav=document.querySelector('#nav button[data-page="'+key+'"]');
-  // Prefer the existing navigation button so the app uses its original routing.
-  if(nav){nav.click();return}
-  // Specialized modules may not have a visible sidebar button, but showPage can render them.
-  if(typeof window.showPage==='function'){window.showPage(key);return}
-  const host=document.getElementById('otherPages');
-  if(host && typeof window.renderModule==='function'){
-   document.querySelectorAll('.pageview').forEach(function(p){p.classList.remove('active')});
-   let page=document.getElementById('page-'+key);
-   if(!page){page=document.createElement('section');page.className='pageview';page.id='page-'+key;host.appendChild(page)}
-   page.classList.add('active');
-   Promise.resolve(window.renderModule(key,page)).catch(function(err){page.innerHTML='<div class="module-alert err">No se pudo abrir el módulo: '+String(err&&err.message||err)+'</div>'});
-   window.scrollTo(0,0);return;
+  // Use the same page router as the sidebar, but report any access/routing issue visibly.
+  if(typeof window.showPage==='function'){
+   window.__nexoOpeningRubricModule=key;
+   window.showPage(key);
+   window.setTimeout(function(){
+    const active=document.querySelector('.pageview.active');
+    const isHome=active&&active.id==='page-inicio';
+    if(isHome && window.__nexoOpeningRubricModule===key){
+      const notice=document.createElement('div');
+      notice.className='module-alert err';
+      notice.textContent='No se pudo abrir "'+(moduleLabels[key]||key)+'". Verifica el rol y los módulos permitidos para esta cuenta.';
+      const homePage=document.getElementById('page-inicio');
+      if(homePage){const prior=homePage.querySelector('.nexo-module-open-error');if(prior)prior.remove();notice.classList.add('nexo-module-open-error');homePage.prepend(notice);}
+    }
+    window.__nexoOpeningRubricModule=null;
+   },80);
+   return;
   }
-  alert('No se pudo abrir el módulo '+key+'. Recarga la página y vuelve a intentarlo.');
+  const nav=document.querySelector('#nav button[data-page="'+key+'"]');
+  if(nav){nav.click();return}
+  alert('No se pudo abrir el módulo '+key+'. La función de navegación no está disponible; recarga la página.');
  };
  section.addEventListener('click',function(e){
   const target=e.target&&e.target.closest?e.target.closest('button[data-nexo-rubric],button[data-nexo-back],button[data-nexo-module]'):null;
