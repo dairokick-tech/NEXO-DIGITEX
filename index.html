@@ -1098,15 +1098,8 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
   if(nav){nav.click();return}
   alert('No se pudo abrir el módulo '+key+'. La función de navegación no está disponible; recarga la página.');
  };
- section.addEventListener('click',function(e){
-  const target=e.target&&e.target.closest?e.target.closest('button[data-nexo-rubric],button[data-nexo-back],button[data-nexo-module]'):null;
-  if(!target||!section.contains(target))return;
-  e.preventDefault();
-  e.stopPropagation();
-  if(target.hasAttribute('data-nexo-rubric')){window.nexoSelectRubric(target.getAttribute('data-nexo-rubric'));return}
-  if(target.hasAttribute('data-nexo-back')){window.nexoShowAllRubrics();return}
-  if(target.hasAttribute('data-nexo-module')){window.nexoOpenModule(target.getAttribute('data-nexo-module'));return}
- },true);
+ // Clicks are bound directly to each tile below. Do not intercept clicks in capture phase,
+ // because stopping propagation before the target can prevent the tile's own handler from firing.
  function bindRubricButtons(){
   section.querySelectorAll('button[data-nexo-rubric]').forEach(function(btn){btn.onclick=function(e){e.preventDefault();window.nexoSelectRubric(btn.getAttribute('data-nexo-rubric'))}});
   section.querySelectorAll('button[data-nexo-back]').forEach(function(btn){btn.onclick=function(e){e.preventDefault();window.nexoShowAllRubrics()}});
