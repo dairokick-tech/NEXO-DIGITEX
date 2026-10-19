@@ -707,7 +707,9 @@ setupDashboardToggles();
     return;
   }
   if(accessMode==='client'&&isSuperadmin){
-    location.replace(location.pathname+'?access=admin');
+    await client.auth.signOut();
+    showGate();
+    message(msg,'Panel Empresas: se cerró la sesión de Superadministrador para mostrar el acceso empresarial. Ingresa con el correo y contraseña de tu empresa.',false);
     return;
   }
   hideGate();
