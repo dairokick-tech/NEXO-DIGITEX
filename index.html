@@ -1079,14 +1079,25 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
   if(typeof window.showPage==='function'){window.showPage(key);return}
   alert('No se encontró la pantalla del módulo '+key+'.');
  };
- section.addEventListener('click',e=>{
-  const rb=e.target.closest('[data-nexo-rubric]');
-  if(rb){window.nexoSelectRubric(rb.dataset.nexoRubric);return}
-  const back=e.target.closest('[data-nexo-back]');
-  if(back){window.nexoShowAllRubrics();return}
-  const mod=e.target.closest('[data-nexo-module]');
-  if(mod)window.nexoOpenModule(mod.dataset.nexoModule);
- });
+ section.addEventListener('click',function(e){
+  const target=e.target&&e.target.closest?e.target.closest('button[data-nexo-rubric],button[data-nexo-back],button[data-nexo-module]'):null;
+  if(!target||!section.contains(target))return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(target.hasAttribute('data-nexo-rubric')){window.nexoSelectRubric(target.getAttribute('data-nexo-rubric'));return}
+  if(target.hasAttribute('data-nexo-back')){window.nexoShowAllRubrics();return}
+  if(target.hasAttribute('data-nexo-module')){window.nexoOpenModule(target.getAttribute('data-nexo-module'));return}
+ },true);
+ function bindRubricButtons(){
+  section.querySelectorAll('button[data-nexo-rubric]').forEach(function(btn){btn.onclick=function(e){e.preventDefault();window.nexoSelectRubric(btn.getAttribute('data-nexo-rubric'))}});
+  section.querySelectorAll('button[data-nexo-back]').forEach(function(btn){btn.onclick=function(e){e.preventDefault();window.nexoShowAllRubrics()}});
+  section.querySelectorAll('button[data-nexo-module]').forEach(function(btn){btn.onclick=function(e){e.preventDefault();window.nexoOpenModule(btn.getAttribute('data-nexo-module'))}});
+ }
+ const originalSelect=window.nexoSelectRubric;
+ window.nexoSelectRubric=function(key){originalSelect(key);bindRubricButtons()};
+ const originalAll=window.nexoShowAllRubrics;
+ window.nexoShowAllRubrics=function(){originalAll();bindRubricButtons()};
+ bindRubricButtons();
 })();
 </script>
 </body></html>
