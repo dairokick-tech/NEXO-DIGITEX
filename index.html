@@ -553,7 +553,7 @@ function applyPlanVisibility(){
  const hasPlan=allowed.size>0;
  document.querySelectorAll('#nav button[data-page]').forEach(b=>{
   const k=b.dataset.page;
-  const rubricOnlyModules={restaurante:"restaurante",farmacia_lotes:"farmacia",bodega_alertas:"bodega",belleza_agenda:"salon_belleza",libreria_reposicion:"libreria",taller_ordenes:"taller",agro_lotes:"agropecuaria",agro_trazabilidad:"agropecuaria",distribuidora_precios:"distribuidora",distribuidora_rutas:"distribuidora",distribuidora_cobros:"distribuidora"};const correctRubric=!rubricOnlyModules[k]||isAdmin||window.nexoBusinessType===rubricOnlyModules[k];const show=correctRubric&&(k==="admin"?isAdmin:(k==="configuracion"?!isAdmin:(k==="inicio"||k==="estadisticas"||isAdmin||allowed.has(k)));
+  const rubricOnlyModules={restaurante:"restaurante",farmacia_lotes:"farmacia",bodega_alertas:"bodega",belleza_agenda:"salon_belleza",libreria_reposicion:"libreria",taller_ordenes:"taller",agro_lotes:"agropecuaria",agro_trazabilidad:"agropecuaria",distribuidora_precios:"distribuidora",distribuidora_rutas:"distribuidora",distribuidora_cobros:"distribuidora"};const correctRubric=!rubricOnlyModules[k]||isAdmin||window.nexoBusinessType===rubricOnlyModules[k];const show=correctRubric&&(k==="admin"?isAdmin:(k==="configuracion"?!isAdmin:(k==="inicio"||k==="estadisticas"||isAdmin||allowed.has(k))));
   b.style.setProperty('display',show?'flex':'none','important');
  });
  document.querySelectorAll('#page-inicio .module').forEach(card=>{
