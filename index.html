@@ -818,7 +818,40 @@ async function loadCompanies(isSuperadmin=false,authUser=null){
  function safe(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  document.getElementById('signInBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){message(msg,'Escribe tu correo y contraseña.',true);return}const btn=document.getElementById('signInBtn');btn.disabled=true;const {error}=await client.auth.signInWithPassword({email,password});btn.disabled=false;if(error){const text=/invalid login credentials/i.test(error.message)?'Correo o contraseña incorrectos. Pulsa “Olvidé mi contraseña” para recuperar el acceso.':/email not confirmed/i.test(error.message)?'Debes confirmar el correo electrónico antes de ingresar. Revisa tu bandeja de entrada.':error.message;message(msg,text,true);return}message(msg,'Sesión iniciada. Verificando tus permisos…',false);location.reload()};
  document.getElementById('forgotPasswordBtn').onclick=async()=>{if(!client&&!setupClient())return;const email=document.getElementById('authEmail').value.trim();if(!email){message(msg,'Escribe tu correo electrónico y luego pulsa “Olvidé mi contraseña”.',true);document.getElementById('authEmail').focus();return}const btn=document.getElementById('forgotPasswordBtn');btn.disabled=true;const redirectTo=location.origin+location.pathname+'?access='+accessMode+'&reset=1';const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo});btn.disabled=false;if(error){message(msg,'No se pudo enviar la recuperación: '+error.message,true);return}message(msg,'Si el correo está registrado, recibirás un enlace para cambiar la contraseña. Revisa también Spam o Correo no deseado.',false)};
- async function openCompanyRequest(){document.getElementById('authGate').style.display='none';document.querySelector('.layout').style.display='none';document.getElementById('companyDialog').style.display='flex';document.getElementById('companyMsg').style.display='none';const sel=document.getElementById('companyPlan');if(!client&&!setupClient())return;sel.innerHTML='<option value="">Cargando plan empresarial…</option>';const {data,error}=await client.from('nexo_plans').select('id,name,monthly_price,features').eq('active',true);if(error){sel.innerHTML='<option value="">No se pudo cargar el plan empresarial</option>';message(document.getElementById('companyMsg'),'No se pudo cargar el plan. Intenta nuevamente.',true);return}const plan=(data||[]).find(p=>p.features?.plan_unico===true||p.features?.todos_los_modulos===true||p.name==='Plan Único Empresarial Todos');if(!plan){sel.innerHTML='<option value="">Plan empresarial no disponible</option>';message(document.getElementById('companyMsg'),'El Superadministrador debe activar el Plan Único Empresarial Todos.',true);return}sel.innerHTML='<option value="'+plan.id+'">'+String(plan.name).replace(/[&<>\"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]))+' — S/ '+Number(plan.monthly_price).toFixed(2)+'/mes</option>';sel.value=plan.id;document.getElementById('companyPlanInfo').textContent='Plan Único Empresarial Todos: incluye los módulos generales disponibles para tu rubro. Las funciones especializadas se habilitarán cuando estén desarrolladas y probadas. Precio: S/ '+Number(plan.monthly_price).toFixed(2)+' al mes. Activación sujeta a aprobación del Superadministrador.'}document.getElementById('requestCompanyBtn').onclick=openCompanyRequest;
+ async function openCompanyRequest(){
+  document.getElementById('authGate').style.display='none';
+  document.querySelector('.layout').style.display='none';
+  document.getElementById('companyDialog').style.display='flex';
+  document.getElementById('companyMsg').style.display='none';
+  const sel=document.getElementById('companyPlan'),info=document.getElementById('companyPlanInfo');
+  if(!client&&!setupClient())return;
+  sel.innerHTML='<option value="">Cargando planes disponibles…</option>';
+  const {data,error}=await client.from('nexo_plans').select('id,name,monthly_price,features').eq('active',true).order('monthly_price',{ascending:true});
+  if(error){
+    sel.innerHTML='<option value="">No se pudieron cargar los planes</option>';
+    message(document.getElementById('companyMsg'),'No se pudieron cargar los planes disponibles. Intenta nuevamente.',true);
+    return;
+  }
+  const plans=(data||[]).filter(p=>p.active!==false);
+  const escPlan=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  if(!plans.length){
+    sel.innerHTML='<option value="">No hay planes disponibles</option>';
+    info.textContent='En este momento no hay planes activos. Contacta al Superadministrador.';
+    return;
+  }
+  sel.innerHTML='<option value="">Selecciona el plan que deseas</option>'+plans.map(p=>'<option value="'+escPlan(p.id)+'">'+escPlan(p.name)+' — S/ '+Number(p.monthly_price||0).toFixed(2)+'/mes</option>').join('');
+  const requested=new URLSearchParams(location.search).get('plan');
+  if(requested&&plans.some(p=>p.id===requested))sel.value=requested;
+  const updatePlanInfo=()=>{
+    const p=plans.find(x=>x.id===sel.value);
+    if(!p){info.textContent='Selecciona un plan para ver su precio. La activación queda sujeta a aprobación del Superadministrador.';return;}
+    const modules=Array.isArray(p.features?.modules)?p.features.modules:[];
+    info.textContent='Plan seleccionado: '+p.name+'. Precio: S/ '+Number(p.monthly_price||0).toFixed(2)+' al mes. '+(modules.length?'Incluye '+modules.length+' módulos habilitados según la configuración del plan. ':'')+'El Superadministrador revisará la solicitud y confirmará el plan al aprobar la empresa.';
+  };
+  sel.onchange=updatePlanInfo;
+  updatePlanInfo();
+}
+document.getElementById('requestCompanyBtn').onclick=openCompanyRequest;
  document.getElementById('companyCancel').onclick=()=>{document.getElementById('companyDialog').style.display='none';document.getElementById('authGate').style.display='flex';};const globalCompanyBtn=document.getElementById('globalCompanyBtn');if(globalCompanyBtn)globalCompanyBtn.onclick=openCompanyRequest;
  document.getElementById('companySave').onclick=async()=>{if(!client&&!setupClient())return;const cm=document.getElementById('companyMsg');const name=document.getElementById('companyName').value.trim(),tax=document.getElementById('companyTax').value.trim(),representative=document.getElementById('companyRepresentative').value.trim(),dni=document.getElementById('companyDni').value.trim(),email=document.getElementById('companyEmail').value.trim().toLowerCase(),business_type=document.getElementById('companyBusinessType').value,requested_plan_id=document.getElementById('companyPlan').value;if(!name||!representative||!email||!tax||!dni||!business_type||!requested_plan_id){message(cm,'Completa todos los campos y selecciona tu rubro.',true);return}if(!/^\d{11}$/.test(tax)){message(cm,'El RUC debe tener exactamente 11 dígitos.',true);return}if(!/^\d{8}$/.test(dni)){message(cm,'El DNI debe tener exactamente 8 dígitos.',true);return}const {error}=await client.from('nexo_companies').insert({name,tax_id:tax,business_type,representative_name:representative,representative_dni:dni,email,contact_email:email,requested_plan_id,created_by:null,status:'pending'});if(error){message(cm,'No se pudo enviar la solicitud: '+error.message,true);return}message(cm,'Solicitud enviada correctamente. El Superadministrador revisará los datos; el acceso y el correo para crear la cuenta se habilitarán después de la aprobación.',false);document.getElementById('companySave').disabled=true;};
  sessionCheck();
