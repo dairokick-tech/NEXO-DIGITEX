@@ -314,132 +314,6 @@ async function renderUniversalPOS(page,body,alert,company){
   }finally{btn.disabled=false}
  };
  body.querySelector("#posTestPrinter").onclick=()=>{const w=window.open("","_blank","width=420,height=420");if(!w){showMessage("El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio.",true);return}const pf=body.querySelector("#posPrintFormat").value,pw=pf==="58"?"48mm":pf==="a4"?"190mm":"72mm",ps=pf==="a4"?"A4":"auto";w.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prueba de impresora</title><style>body{font:14px Arial;text-align:center;padding:8px;width:'+pw+';max-width:100%;margin:0 auto;box-sizing:border-box}h2{font-size:18px}button{padding:10px 16px}@page{size:'+ps+';margin:5mm}@media print{button{display:none}}</style><body><h2>'+esc(companyInfo.name||"NEXO DIGITEX")+'</h2><p>PRUEBA DE IMPRESIÓN</p><p>Formato: '+esc(pf==="a4"?"A4 / factura":"Ticket "+pf+" mm")+'</p><p>Si puedes leer este texto, la impresora seleccionada está imprimiendo correctamente.</p><p>'+esc(new Date().toLocaleString("es-PE"))+'</p><button onclick="window.print()">Elegir impresora e imprimir</button>
-<!-- NEXO RUBROS ICON GRID V1 -->
-<style id="nexo-rubros-icon-grid">
-body:not(.stats-mode) #page-inicio>.heading,
-body:not(.stats-mode) #page-inicio>.notice,
-body:not(.stats-mode) #page-inicio>.kpis,
-body:not(.stats-mode) #page-inicio>.twocol,
-body:not(.stats-mode) #page-inicio>.summaryrow,
-body:not(.stats-mode) #page-inicio>.moduleshead,
-body:not(.stats-mode) #page-inicio>#mainModulesContent,
-body:not(.stats-mode) #page-inicio>.business-ecosystem,
-body:not(.stats-mode) #page-inicio>#architectureContent,
-body:not(.stats-mode) #page-inicio>.foot{display:none!important}
-body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
-.nexo-rubric-home{padding:2px 0 20px}
-.nexo-rubric-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:0 0 20px;padding:0 0 15px;border-bottom:1px solid #d6e2ee}
-.nexo-rubric-heading h1{margin:0;color:#123b63;font-size:clamp(22px,2vw,30px);letter-spacing:-.4px}
-.nexo-rubric-heading p{margin:6px 0 0;color:#617991;font-size:13px}
-.nexo-rubric-kicker{font-size:10px;font-weight:850;letter-spacing:1.5px;color:#1478bd}
-.nexo-rubric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.nexo-rubric-tile{appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;min-height:150px;padding:18px 12px;border:1px solid #d2dfeb;border-radius:12px;background:linear-gradient(180deg,#fff,#f8fbff);color:#173c60;text-align:center;box-shadow:0 2px 7px #173b5b0a;transition:transform .15s,border-color .15s,box-shadow .15s}
-.nexo-rubric-tile:hover{transform:translateY(-2px);border-color:#6aafe7;box-shadow:0 7px 20px #173b5b12;background:#fff}
-.nexo-rubric-icon{display:grid;place-items:center;width:66px;height:66px;border-radius:16px;background:#e8f3fc;color:#126bb0}
-.nexo-rubric-icon svg{width:36px;height:36px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.nexo-rubric-tile strong{font-size:14px;line-height:1.3}
-.nexo-rubric-tile small{font-size:11px;color:#6c8296;line-height:1.35}
-.nexo-rubric-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 18px}
-.nexo-rubric-back{border:1px solid #c8d9e8;background:#fff;border-radius:7px;padding:10px 13px;color:#174a76;font-weight:750}
-.nexo-rubric-back:hover{background:#eef7ff}
-.nexo-rubric-title{display:flex;align-items:center;gap:12px;min-width:0}
-.nexo-rubric-title h2{font-size:23px;margin:0;color:#123b63}
-.nexo-rubric-title p{font-size:12px;margin:4px 0 0;color:#6a7f93}
-.nexo-module-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.nexo-module-tile{position:relative;appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:0;min-height:126px;padding:15px 9px;border:1px solid #d2dfeb;border-radius:10px;background:#fff;color:#173c60;text-align:center;transition:transform .15s,border-color .15s}
-.nexo-module-tile:hover:not(:disabled){transform:translateY(-2px);border-color:#65ace6;background:#f8fcff}
-.nexo-module-tile:disabled{opacity:.56;background:#f2f5f8;cursor:not-allowed}
-.nexo-module-tile .nexo-rubric-icon{width:51px;height:51px;border-radius:12px;background:#eef5fc}
-.nexo-module-tile .nexo-rubric-icon svg{width:28px;height:28px}
-.nexo-module-tile strong{font-size:12px;line-height:1.35}
-.nexo-module-tile small{font-size:10px;color:#8a651c}
-.nexo-rubric-empty{padding:24px;background:#fff;border:1px solid #d7e2ed;border-radius:10px;color:#657c91}
-@media(max-width:1100px){.nexo-rubric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.nexo-module-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:720px){.nexo-rubric-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.nexo-rubric-tile{min-height:132px;padding:14px 8px}.nexo-rubric-icon{width:56px;height:56px;border-radius:13px}.nexo-rubric-icon svg{width:31px;height:31px}.nexo-rubric-tile strong{font-size:12px}.nexo-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.nexo-module-tile{min-height:116px;padding:12px 7px}.nexo-rubric-title h2{font-size:19px}.nexo-rubric-heading{align-items:flex-start;flex-direction:column}}
-</style>
-<script id="nexo-rubros-icon-grid-script">
-(function(){
- const home=document.getElementById('page-inicio');
- if(!home||document.getElementById('nexoRubricHome'))return;
- const icons={
-  store:'<rect x="4" y="9" width="16" height="11" rx="1"/><path d="M3 9l2-5h14l2 5M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0M8 20v-6h8v6"/>',
-  pharmacy:'<path d="M10 3h4v6h6v4h-6v6h-4v-6H4V9h6z"/><rect x="3" y="3" width="18" height="18" rx="4"/>',
-  restaurant:'<path d="M7 3v7M4 3v4a3 3 0 006 0V3M7 10v11M16 3v18M16 3c4 2 4 8 0 10"/>',
-  farm:'<path d="M12 21V11M12 14C4 14 3 8 3 5c6 0 9 3 9 9M12 11c0-6 4-8 9-8 0 5-3 9-9 9M4 21h16"/>',
-  clothes:'<path d="M8 4l4 3 4-3 5 4-3 4-2-2v11H8V10l-2 2-3-4z"/>',
-  tools:'<path d="M14 7a5 5 0 006 6l-9 9-4-4 9-9a5 5 0 01-6-6l3 3 3-1 1-3z"/><path d="M4 4l5 5"/>',
-  car:'<path d="M5 11l2-5h10l2 5 2 2v5h-2v2h-3v-2H8v2H5v-2H3v-5zM5 11h14M6 15h3m6 0h3"/>',
-  computer:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',
-  bread:'<path d="M4 13c-2-6 3-10 8-10s10 4 8 10l-2 7H6zM8 7l1 3m5-4l1 3m3 0l-1 3"/>',
-  beauty:'<path d="M14 3l7 7M3 21l8-8m-5-5l6 6m-4-9l13 13M4 4l5 5"/>',
-  building:'<path d="M4 21V3h12v18M16 10h5v11M8 7h3m-3 4h3m-3 4h3m-3 3h3m7-4h1m-1 4h1"/>',
-  truck:'<path d="M3 6h11v11H3zM14 10h4l3 4v3h-7z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/>',
-  vet:'<path d="M12 12c-2-3-6-1-6 2 0 2 2 3 6 6 4-3 6-4 6-6 0-3-4-5-6-2z"/><circle cx="6" cy="6" r="2"/><circle cx="11" cy="4" r="2"/><circle cx="16" cy="5" r="2"/><circle cx="20" cy="9" r="2"/>',
-  hotel:'<path d="M4 21V4h12v17M16 10h5v11M7 8h2m3 0h1M7 12h2m3 0h1M7 16h2m3 0h1M9 21v-3h3v3"/>',
-  laundry:'<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M8 6h1m3 0h1"/>',
-  office:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h3m4 0h3M7 12h3m4 0h3M7 16h3m4 0h3"/>',
-  box:'<path d="M3 7l9-4 9 4-9 5zM3 7v10l9 4 9-4V7M12 12v9"/>',
-  people:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0112 0v2M16 5a3 3 0 010 6m2 3a5 5 0 013 5v1"/>',
-  money:'<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 9h.01M18 16h.01"/>',
-  chart:'<path d="M3 3v18h18M7 15l4-4 3 2 6-7"/>',
-  receipt:'<path d="M6 3l2 2 4-2 4 2 2-2v18l-3-2-3 2-4-2-2 2zM9 9h6m-6 4h6"/>',
-  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h2m3 0h2m-7 3h2"/>',
-  package:'<path d="M3 7l9-4 9 4-9 5zM3 7v10l9 4 9-4V7M12 12v9"/>',
-  clipboard:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8m-8 4h8m-8 4h5"/>',
-  settings:'<circle cx="12" cy="12" r="3"/><path d="M19 13.5l2 1.5-2 3-2-1-2 1v2h-4v-2l-2-1-2 1-2-3 2-1.5v-3L3 9l2-3 2 1 2-1V4h4v2l2 1 2-1 2 3-2 1.5z"/>',
-  scan:'<path d="M4 7V4h4m8 0h4v3M4 17v3h4m8 0h4v-3M6 9v6m3-6v6m3-6v6m3-6v6m3-6v6"/>',
-  undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-2"/>',
-  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/>',
-  calendarClock:'<rect x="3" y="4" width="14" height="16" rx="2"/><path d="M7 2v4m6-4v4M3 9h14"/><circle cx="18" cy="17" r="4"/><path d="M18 15v2l1 1"/>'
- };
- const svg=(name)=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+(icons[name]||icons.box)+'</svg>';
- const rubrics=[
-  {key:'farmacia',label:'Farmacias y boticas',icon:'pharmacy',desc:'Medicamentos, lotes y vencimientos',mods:['ventas','inventario','compras','clientes','caja','contabilidad','facturacion','farmacia_lotes','bodega_alertas','auditoria']},
-  {key:'restaurante',label:'Restaurantes y cafeterías',icon:'restaurant',desc:'Mesas, pedidos, comandas e insumos',mods:['ventas','inventario','compras','clientes','caja','contabilidad','rrhh','restaurante','delivery','cotizaciones','auditoria']},
-  {key:'agropecuaria',label:'Agropecuarias',icon:'farm',desc:'Insumos, semillas, lotes y trazabilidad',mods:['ventas','inventario','compras','clientes','caja','contabilidad','agro_lotes','agro_trazabilidad','sucursales','cuentas_pagar']},
-  {key:'bodega',label:'Bodegas y minimarkets',icon:'store',desc:'Ventas rápidas, barras, caja y reposición',mods:['ventas','inventario','compras','clientes','caja','tienda_online','bodega_alertas','cotizaciones','devoluciones','facturacion']},
-  {key:'tienda',label:'Tiendas y comercios',icon:'store',desc:'Ventas, compras, clientes y sucursales',mods:['ventas','inventario','compras','clientes','caja','contabilidad','tienda_online','cotizaciones','devoluciones','sucursales','facturacion','activos']},
-  {key:'ropa',label:'Tiendas de ropa y calzado',icon:'clothes',desc:'Tallas, colores, ventas e inventario',mods:['ventas','inventario','compras','clientes','caja','tienda_online','cotizaciones','devoluciones']},
-  {key:'ferreteria',label:'Ferreterías',icon:'tools',desc:'Herramientas, materiales y existencias',mods:['ventas','inventario','compras','clientes','caja','cotizaciones','devoluciones','cuentas_pagar','sucursales']},
-  {key:'repuestos',label:'Repuestos y accesorios',icon:'car',desc:'Piezas, compatibilidad y stock',mods:['ventas','inventario','compras','clientes','caja','cotizaciones','devoluciones','cuentas_pagar']},
-  {key:'tecnologia',label:'Electrónica y tecnología',icon:'computer',desc:'Equipos, accesorios, ventas y garantías',mods:['ventas','inventario','compras','clientes','caja','devoluciones','activos','tienda_online','facturacion']},
-  {key:'panaderia',label:'Panaderías y pastelerías',icon:'bread',desc:'Productos, insumos, producción y caja',mods:['ventas','inventario','compras','clientes','caja','rrhh','contabilidad','cotizaciones']},
-  {key:'salon_belleza',label:'Salones de belleza',icon:'beauty',desc:'Citas, servicios, personal y cobros',mods:['ventas','inventario','clientes','caja','rrhh','belleza_agenda','cotizaciones']},
-  {key:'construccion',label:'Materiales de construcción',icon:'building',desc:'Materiales, compras y despacho',mods:['ventas','inventario','compras','clientes','caja','delivery','cotizaciones','cuentas_pagar','sucursales']},
-  {key:'distribuidora',label:'Mayoristas y distribuidores',icon:'truck',desc:'Volúmenes, almacenes, rutas y cobros',mods:['ventas','inventario','compras','clientes','caja','contabilidad','distribuidora_precios','distribuidora_rutas','distribuidora_cobros','delivery','sucursales']},
-  {key:'veterinaria',label:'Veterinarias',icon:'vet',desc:'Productos veterinarios, clientes y stock',mods:['ventas','inventario','compras','clientes','caja','rrhh','cotizaciones']},
-  {key:'hotel',label:'Hoteles y hospedajes',icon:'hotel',desc:'Reservas, servicios, cobros y personal',mods:['ventas','clientes','caja','contabilidad','rrhh','cotizaciones']},
-  {key:'lavanderia',label:'Lavanderías y servicios',icon:'laundry',desc:'Órdenes de servicio, clientes y pagos',mods:['ventas','clientes','caja','rrhh','cotizaciones','auditoria']},
-  {key:'servicios',label:'Servicios y oficinas',icon:'office',desc:'Clientes, cotizaciones, cobros y equipo',mods:['ventas','clientes','caja','contabilidad','rrhh','cotizaciones','facturacion','auditoria']},
-  {key:'almacen',label:'Almacenes y logística',icon:'box',desc:'Entradas, salidas, transferencias y kardex',mods:['inventario','compras','sucursales','cuentas_pagar','auditoria','distribuidora_rutas']},
-  {key:'taller',label:'Talleres y servicios técnicos',icon:'tools',desc:'Repuestos, órdenes de trabajo y cobros',mods:['ventas','inventario','compras','clientes','caja','taller_ordenes','cotizaciones','devoluciones']},
-  {key:'libreria',label:'Librerías y útiles',icon:'package',desc:'Catálogo, códigos de barras y reposición',mods:['ventas','inventario','compras','clientes','caja','libreria_reposicion','tienda_online']},
-  {key:'delivery',label:'Distribución y delivery',icon:'truck',desc:'Pedidos, repartidores y rutas',mods:['ventas','clientes','caja','delivery','distribuidora_rutas','auditoria']},
-  {key:'otro',label:'Otros rubros',icon:'people',desc:'Configura módulos adecuados a tu actividad',mods:['ventas','inventario','compras','clientes','caja','contabilidad','rrhh','cotizaciones','facturacion']}
- ];
- const moduleIcons={ventas:'receipt',inventario:'package',compras:'truck',clientes:'people',caja:'money',contabilidad:'chart',rrhh:'people',tienda_online:'globe',cotizaciones:'receipt',devoluciones:'undo',sucursales:'building',facturacion:'receipt',cuentas_pagar:'money',activos:'box',auditoria:'clipboard',delivery:'truck',restaurante:'restaurant',farmacia_lotes:'pharmacy',bodega_alertas:'scan',belleza_agenda:'calendar',libreria_reposicion:'package',taller_ordenes:'tools',agro_lotes:'farm',agro_trazabilidad:'clipboard',distribuidora_precios:'receipt',distribuidora_rutas:'truck',distribuidora_cobros:'money'};
- const moduleLabels={ventas:'Ventas y punto de venta',inventario:'Productos, inventario y kardex',compras:'Compras y proveedores',clientes:'Clientes y cuentas por cobrar',caja:'Caja, bancos y gastos',contabilidad:'Contabilidad y reportes',rrhh:'Personal y RR. HH.',tienda_online:'Tienda online',cotizaciones:'Cotizaciones',devoluciones:'Devoluciones y garantías',sucursales:'Sucursales y almacenes',facturacion:'Facturación electrónica',cuentas_pagar:'Cuentas por pagar',activos:'Activos fijos',auditoria:'Auditoría y actividad',delivery:'Pedidos y delivery',restaurante:'Pedidos y comandas',farmacia_lotes:'Lotes y vencimientos',bodega_alertas:'Alertas de stock',belleza_agenda:'Agenda de belleza',libreria_reposicion:'Reposición de librería',taller_ordenes:'Órdenes de taller',agro_lotes:'Lotes agropecuarios',agro_trazabilidad:'Trazabilidad de insumos',distribuidora_precios:'Tarifas por volumen',distribuidora_rutas:'Rutas y despachos',distribuidora_cobros:'Cobros mayoristas'};
- const allowed=()=>new Set(window.nexoIsSuperadmin===true?Object.keys(moduleLabels):(window.nexoAllowedModules||[]));
- const rubricsMarkup=()=>'<div class="nexo-rubric-heading"><div><span class="nexo-rubric-kicker">NEXO DIGITEX · SISTEMA MULTIRRUBRO</span><h1>Selecciona el rubro de tu negocio</h1><p>Presiona un icono para abrir los módulos correspondientes a esa actividad.</p></div></div><div class="nexo-rubric-grid">'+rubrics.map(r=>'<button type="button" class="nexo-rubric-tile" data-nexo-rubric="'+r.key+'"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><strong>'+r.label+'</strong><small>'+r.desc+'</small></button>').join('')+'</div>';
- const section=document.createElement('section');section.id='nexoRubricHome';section.className='nexo-rubric-home';section.innerHTML=rubricsMarkup();home.insertBefore(section,home.firstChild);
- function renderModules(r){
-  const access=allowed();
-  section.innerHTML='<div class="nexo-rubric-toolbar"><button type="button" class="nexo-rubric-back" data-nexo-back>← Todos los rubros</button><div class="nexo-rubric-title"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><div><h2>'+r.label+'</h2><p>Selecciona el icono del módulo que deseas abrir.</p></div></div></div><div class="nexo-module-grid">'+r.mods.map(k=>{
-   const ok=access.has(k)||window.nexoIsSuperadmin===true;
-   return '<button type="button" class="nexo-module-tile" data-nexo-module="'+k+'" '+(!ok?'disabled aria-disabled="true"':'')+'><span class="nexo-rubric-icon">'+svg(moduleIcons[k]||'box')+'</span><strong>'+moduleLabels[k]+'</strong>'+(!ok?'<small>🔒 No incluido en tu plan</small>':'')+'</button>';
-  }).join('')+'</div>';
- }
- section.addEventListener('click',e=>{
-  const back=e.target.closest('[data-nexo-back]');
-  if(back){section.innerHTML=rubricsMarkup();window.scrollTo({top:0,behavior:'smooth'});return}
-  const rb=e.target.closest('[data-nexo-rubric]');
-  if(rb){const r=rubrics.find(x=>x.key===rb.dataset.nexoRubric);if(r)renderModules(r);return}
-  const mod=e.target.closest('[data-nexo-module]');
-  if(mod&&!mod.disabled){if(typeof window.showPage==='function')window.showPage(mod.dataset.nexoModule);else{const nav=document.querySelector('#nav [data-page="'+mod.dataset.nexoModule+'"]');if(nav)nav.click()}}
- });
-})();
-</script>
-
 </body></html>');w.document.close()};
  body.querySelector("#posNewProductToggle").onclick=()=>{const f=body.querySelector("#posNewProductForm");f.style.display=f.style.display==="none"?"block":"none"};body.querySelector("#posNewProductForm").onsubmit=async e=>{e.preventDefault();const f=e.currentTarget,m=body.querySelector("#posNewProductMessage"),b=f.querySelector("button[type=submit]"),data=new FormData(f);b.disabled=true;m.textContent="Guardando…";const payload={company_id:company,name:String(data.get("name")||"").trim(),sku:String(data.get("sku")||"").trim()||null,barcode:String(data.get("barcode")||"").trim()||null,category:String(data.get("category")||"").trim()||null,cost:Number(data.get("cost")||0),price:Number(data.get("price")||0),stock:Number(data.get("stock")||0),min_stock:0,unit:"unidad",active:true};const {error}=await client.from("nexo_products").insert(payload);if(error){m.textContent="No se pudo guardar: "+error.message}else{m.textContent="Producto creado.";f.reset();f.style.display="none";await load()}b.disabled=false};body.querySelector("#posClear").onclick=()=>{cart=[];renderCart();message.style.display="none"};
  body.querySelector("#posSaveQr").onclick=async()=>{const file=body.querySelector("#posQrFile").files[0],m=body.querySelector("#posQrMessage"),b=body.querySelector("#posSaveQr");if(!file){m.textContent="Selecciona primero una imagen QR.";return}if(file.size>5*1024*1024){m.textContent="La imagen no puede superar 5 MB.";return}b.disabled=true;m.textContent="Guardando QR…";try{const ext=(file.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"");const path=company+"/"+Date.now()+"-qr."+ext;const up=await client.storage.from("nexo-payment-qrs").upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;const url=client.storage.from("nexo-payment-qrs").getPublicUrl(path).data.publicUrl;const upd=await client.from("nexo_companies").update({payment_qr_url:url}).eq("id",company);if(upd.error)throw upd.error;companyInfo.payment_qr_url=url;m.textContent="QR guardado correctamente.";updateQr()}catch(err){m.textContent="No se pudo guardar el QR: "+(err.message||"Error")}finally{b.disabled=false}};
@@ -1070,4 +944,129 @@ body.stats-mode #page-inicio .summaryrow{display:grid}
 })();
 </script>
 
+<!-- NEXO RUBROS ICON GRID V1 -->
+<style id="nexo-rubros-icon-grid">
+body:not(.stats-mode) #page-inicio>.heading,
+body:not(.stats-mode) #page-inicio>.notice,
+body:not(.stats-mode) #page-inicio>.kpis,
+body:not(.stats-mode) #page-inicio>.twocol,
+body:not(.stats-mode) #page-inicio>.summaryrow,
+body:not(.stats-mode) #page-inicio>.moduleshead,
+body:not(.stats-mode) #page-inicio>#mainModulesContent,
+body:not(.stats-mode) #page-inicio>.business-ecosystem,
+body:not(.stats-mode) #page-inicio>#architectureContent,
+body:not(.stats-mode) #page-inicio>.foot{display:none!important}
+body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
+.nexo-rubric-home{padding:2px 0 20px}
+.nexo-rubric-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:0 0 20px;padding:0 0 15px;border-bottom:1px solid #d6e2ee}
+.nexo-rubric-heading h1{margin:0;color:#123b63;font-size:clamp(22px,2vw,30px);letter-spacing:-.4px}
+.nexo-rubric-heading p{margin:6px 0 0;color:#617991;font-size:13px}
+.nexo-rubric-kicker{font-size:10px;font-weight:850;letter-spacing:1.5px;color:#1478bd}
+.nexo-rubric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.nexo-rubric-tile{appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;min-height:150px;padding:18px 12px;border:1px solid #d2dfeb;border-radius:12px;background:linear-gradient(180deg,#fff,#f8fbff);color:#173c60;text-align:center;box-shadow:0 2px 7px #173b5b0a;transition:transform .15s,border-color .15s,box-shadow .15s}
+.nexo-rubric-tile:hover{transform:translateY(-2px);border-color:#6aafe7;box-shadow:0 7px 20px #173b5b12;background:#fff}
+.nexo-rubric-icon{display:grid;place-items:center;width:66px;height:66px;border-radius:16px;background:#e8f3fc;color:#126bb0}
+.nexo-rubric-icon svg{width:36px;height:36px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nexo-rubric-tile strong{font-size:14px;line-height:1.3}
+.nexo-rubric-tile small{font-size:11px;color:#6c8296;line-height:1.35}
+.nexo-rubric-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 18px}
+.nexo-rubric-back{border:1px solid #c8d9e8;background:#fff;border-radius:7px;padding:10px 13px;color:#174a76;font-weight:750}
+.nexo-rubric-back:hover{background:#eef7ff}
+.nexo-rubric-title{display:flex;align-items:center;gap:12px;min-width:0}
+.nexo-rubric-title h2{font-size:23px;margin:0;color:#123b63}
+.nexo-rubric-title p{font-size:12px;margin:4px 0 0;color:#6a7f93}
+.nexo-module-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.nexo-module-tile{position:relative;appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:0;min-height:126px;padding:15px 9px;border:1px solid #d2dfeb;border-radius:10px;background:#fff;color:#173c60;text-align:center;transition:transform .15s,border-color .15s}
+.nexo-module-tile:hover:not(:disabled){transform:translateY(-2px);border-color:#65ace6;background:#f8fcff}
+.nexo-module-tile:disabled{opacity:.56;background:#f2f5f8;cursor:not-allowed}
+.nexo-module-tile .nexo-rubric-icon{width:51px;height:51px;border-radius:12px;background:#eef5fc}
+.nexo-module-tile .nexo-rubric-icon svg{width:28px;height:28px}
+.nexo-module-tile strong{font-size:12px;line-height:1.35}
+.nexo-module-tile small{font-size:10px;color:#8a651c}
+.nexo-rubric-empty{padding:24px;background:#fff;border:1px solid #d7e2ed;border-radius:10px;color:#657c91}
+@media(max-width:1100px){.nexo-rubric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.nexo-module-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:720px){.nexo-rubric-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.nexo-rubric-tile{min-height:132px;padding:14px 8px}.nexo-rubric-icon{width:56px;height:56px;border-radius:13px}.nexo-rubric-icon svg{width:31px;height:31px}.nexo-rubric-tile strong{font-size:12px}.nexo-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.nexo-module-tile{min-height:116px;padding:12px 7px}.nexo-rubric-title h2{font-size:19px}.nexo-rubric-heading{align-items:flex-start;flex-direction:column}}
+</style>
+<script id="nexo-rubros-icon-grid-script">
+(function(){
+ const home=document.getElementById('page-inicio');
+ if(!home||document.getElementById('nexoRubricHome'))return;
+ const icons={
+  store:'<rect x="4" y="9" width="16" height="11" rx="1"/><path d="M3 9l2-5h14l2 5M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0M8 20v-6h8v6"/>',
+  pharmacy:'<path d="M10 3h4v6h6v4h-6v6h-4v-6H4V9h6z"/><rect x="3" y="3" width="18" height="18" rx="4"/>',
+  restaurant:'<path d="M7 3v7M4 3v4a3 3 0 006 0V3M7 10v11M16 3v18M16 3c4 2 4 8 0 10"/>',
+  farm:'<path d="M12 21V11M12 14C4 14 3 8 3 5c6 0 9 3 9 9M12 11c0-6 4-8 9-8 0 5-3 9-9 9M4 21h16"/>',
+  clothes:'<path d="M8 4l4 3 4-3 5 4-3 4-2-2v11H8V10l-2 2-3-4z"/>',
+  tools:'<path d="M14 7a5 5 0 006 6l-9 9-4-4 9-9a5 5 0 01-6-6l3 3 3-1 1-3z"/><path d="M4 4l5 5"/>',
+  car:'<path d="M5 11l2-5h10l2 5 2 2v5h-2v2h-3v-2H8v2H5v-2H3v-5zM5 11h14M6 15h3m6 0h3"/>',
+  computer:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',
+  bread:'<path d="M4 13c-2-6 3-10 8-10s10 4 8 10l-2 7H6zM8 7l1 3m5-4l1 3m3 0l-1 3"/>',
+  beauty:'<path d="M14 3l7 7M3 21l8-8m-5-5l6 6m-4-9l13 13M4 4l5 5"/>',
+  building:'<path d="M4 21V3h12v18M16 10h5v11M8 7h3m-3 4h3m-3 4h3m-3 3h3m7-4h1m-1 4h1"/>',
+  truck:'<path d="M3 6h11v11H3zM14 10h4l3 4v3h-7z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/>',
+  vet:'<path d="M12 12c-2-3-6-1-6 2 0 2 2 3 6 6 4-3 6-4 6-6 0-3-4-5-6-2z"/><circle cx="6" cy="6" r="2"/><circle cx="11" cy="4" r="2"/><circle cx="16" cy="5" r="2"/><circle cx="20" cy="9" r="2"/>',
+  hotel:'<path d="M4 21V4h12v17M16 10h5v11M7 8h2m3 0h1M7 12h2m3 0h1M7 16h2m3 0h1M9 21v-3h3v3"/>',
+  laundry:'<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M8 6h1m3 0h1"/>',
+  office:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h3m4 0h3M7 12h3m4 0h3M7 16h3m4 0h3"/>',
+  box:'<path d="M3 7l9-4 9 4-9 5zM3 7v10l9 4 9-4V7M12 12v9"/>',
+  people:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0112 0v2M16 5a3 3 0 010 6m2 3a5 5 0 013 5v1"/>',
+  money:'<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 9h.01M18 16h.01"/>',
+  chart:'<path d="M3 3v18h18M7 15l4-4 3 2 6-7"/>',
+  receipt:'<path d="M6 3l2 2 4-2 4 2 2-2v18l-3-2-3 2-4-2-2 2zM9 9h6m-6 4h6"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h2m3 0h2m-7 3h2"/>',
+  package:'<path d="M3 7l9-4 9 4-9 5zM3 7v10l9 4 9-4V7M12 12v9"/>',
+  clipboard:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8m-8 4h8m-8 4h5"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19 13.5l2 1.5-2 3-2-1-2 1v2h-4v-2l-2-1-2 1-2-3 2-1.5v-3L3 9l2-3 2 1 2-1V4h4v2l2 1 2-1 2 3-2 1.5z"/>',
+  scan:'<path d="M4 7V4h4m8 0h4v3M4 17v3h4m8 0h4v-3M6 9v6m3-6v6m3-6v6m3-6v6m3-6v6"/>',
+  undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-2"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/>',
+  calendarClock:'<rect x="3" y="4" width="14" height="16" rx="2"/><path d="M7 2v4m6-4v4M3 9h14"/><circle cx="18" cy="17" r="4"/><path d="M18 15v2l1 1"/>'
+ };
+ const svg=(name)=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+(icons[name]||icons.box)+'</svg>';
+ const rubrics=[
+  {key:'farmacia',label:'Farmacias y boticas',icon:'pharmacy',desc:'Medicamentos, lotes y vencimientos',mods:['ventas','inventario','compras','clientes','caja','contabilidad','facturacion','farmacia_lotes','bodega_alertas','auditoria']},
+  {key:'restaurante',label:'Restaurantes y cafeterías',icon:'restaurant',desc:'Mesas, pedidos, comandas e insumos',mods:['ventas','inventario','compras','clientes','caja','contabilidad','rrhh','restaurante','delivery','cotizaciones','auditoria']},
+  {key:'agropecuaria',label:'Agropecuarias',icon:'farm',desc:'Insumos, semillas, lotes y trazabilidad',mods:['ventas','inventario','compras','clientes','caja','contabilidad','agro_lotes','agro_trazabilidad','sucursales','cuentas_pagar']},
+  {key:'bodega',label:'Bodegas y minimarkets',icon:'store',desc:'Ventas rápidas, barras, caja y reposición',mods:['ventas','inventario','compras','clientes','caja','tienda_online','bodega_alertas','cotizaciones','devoluciones','facturacion']},
+  {key:'tienda',label:'Tiendas y comercios',icon:'store',desc:'Ventas, compras, clientes y sucursales',mods:['ventas','inventario','compras','clientes','caja','contabilidad','tienda_online','cotizaciones','devoluciones','sucursales','facturacion','activos']},
+  {key:'ropa',label:'Tiendas de ropa y calzado',icon:'clothes',desc:'Tallas, colores, ventas e inventario',mods:['ventas','inventario','compras','clientes','caja','tienda_online','cotizaciones','devoluciones']},
+  {key:'ferreteria',label:'Ferreterías',icon:'tools',desc:'Herramientas, materiales y existencias',mods:['ventas','inventario','compras','clientes','caja','cotizaciones','devoluciones','cuentas_pagar','sucursales']},
+  {key:'repuestos',label:'Repuestos y accesorios',icon:'car',desc:'Piezas, compatibilidad y stock',mods:['ventas','inventario','compras','clientes','caja','cotizaciones','devoluciones','cuentas_pagar']},
+  {key:'tecnologia',label:'Electrónica y tecnología',icon:'computer',desc:'Equipos, accesorios, ventas y garantías',mods:['ventas','inventario','compras','clientes','caja','devoluciones','activos','tienda_online','facturacion']},
+  {key:'panaderia',label:'Panaderías y pastelerías',icon:'bread',desc:'Productos, insumos, producción y caja',mods:['ventas','inventario','compras','clientes','caja','rrhh','contabilidad','cotizaciones']},
+  {key:'salon_belleza',label:'Salones de belleza',icon:'beauty',desc:'Citas, servicios, personal y cobros',mods:['ventas','inventario','clientes','caja','rrhh','belleza_agenda','cotizaciones']},
+  {key:'construccion',label:'Materiales de construcción',icon:'building',desc:'Materiales, compras y despacho',mods:['ventas','inventario','compras','clientes','caja','delivery','cotizaciones','cuentas_pagar','sucursales']},
+  {key:'distribuidora',label:'Mayoristas y distribuidores',icon:'truck',desc:'Volúmenes, almacenes, rutas y cobros',mods:['ventas','inventario','compras','clientes','caja','contabilidad','distribuidora_precios','distribuidora_rutas','distribuidora_cobros','delivery','sucursales']},
+  {key:'veterinaria',label:'Veterinarias',icon:'vet',desc:'Productos veterinarios, clientes y stock',mods:['ventas','inventario','compras','clientes','caja','rrhh','cotizaciones']},
+  {key:'hotel',label:'Hoteles y hospedajes',icon:'hotel',desc:'Reservas, servicios, cobros y personal',mods:['ventas','clientes','caja','contabilidad','rrhh','cotizaciones']},
+  {key:'lavanderia',label:'Lavanderías y servicios',icon:'laundry',desc:'Órdenes de servicio, clientes y pagos',mods:['ventas','clientes','caja','rrhh','cotizaciones','auditoria']},
+  {key:'servicios',label:'Servicios y oficinas',icon:'office',desc:'Clientes, cotizaciones, cobros y equipo',mods:['ventas','clientes','caja','contabilidad','rrhh','cotizaciones','facturacion','auditoria']},
+  {key:'almacen',label:'Almacenes y logística',icon:'box',desc:'Entradas, salidas, transferencias y kardex',mods:['inventario','compras','sucursales','cuentas_pagar','auditoria','distribuidora_rutas']},
+  {key:'taller',label:'Talleres y servicios técnicos',icon:'tools',desc:'Repuestos, órdenes de trabajo y cobros',mods:['ventas','inventario','compras','clientes','caja','taller_ordenes','cotizaciones','devoluciones']},
+  {key:'libreria',label:'Librerías y útiles',icon:'package',desc:'Catálogo, códigos de barras y reposición',mods:['ventas','inventario','compras','clientes','caja','libreria_reposicion','tienda_online']},
+  {key:'delivery',label:'Distribución y delivery',icon:'truck',desc:'Pedidos, repartidores y rutas',mods:['ventas','clientes','caja','delivery','distribuidora_rutas','auditoria']},
+  {key:'otro',label:'Otros rubros',icon:'people',desc:'Configura módulos adecuados a tu actividad',mods:['ventas','inventario','compras','clientes','caja','contabilidad','rrhh','cotizaciones','facturacion']}
+ ];
+ const moduleIcons={ventas:'receipt',inventario:'package',compras:'truck',clientes:'people',caja:'money',contabilidad:'chart',rrhh:'people',tienda_online:'globe',cotizaciones:'receipt',devoluciones:'undo',sucursales:'building',facturacion:'receipt',cuentas_pagar:'money',activos:'box',auditoria:'clipboard',delivery:'truck',restaurante:'restaurant',farmacia_lotes:'pharmacy',bodega_alertas:'scan',belleza_agenda:'calendar',libreria_reposicion:'package',taller_ordenes:'tools',agro_lotes:'farm',agro_trazabilidad:'clipboard',distribuidora_precios:'receipt',distribuidora_rutas:'truck',distribuidora_cobros:'money'};
+ const moduleLabels={ventas:'Ventas y punto de venta',inventario:'Productos, inventario y kardex',compras:'Compras y proveedores',clientes:'Clientes y cuentas por cobrar',caja:'Caja, bancos y gastos',contabilidad:'Contabilidad y reportes',rrhh:'Personal y RR. HH.',tienda_online:'Tienda online',cotizaciones:'Cotizaciones',devoluciones:'Devoluciones y garantías',sucursales:'Sucursales y almacenes',facturacion:'Facturación electrónica',cuentas_pagar:'Cuentas por pagar',activos:'Activos fijos',auditoria:'Auditoría y actividad',delivery:'Pedidos y delivery',restaurante:'Pedidos y comandas',farmacia_lotes:'Lotes y vencimientos',bodega_alertas:'Alertas de stock',belleza_agenda:'Agenda de belleza',libreria_reposicion:'Reposición de librería',taller_ordenes:'Órdenes de taller',agro_lotes:'Lotes agropecuarios',agro_trazabilidad:'Trazabilidad de insumos',distribuidora_precios:'Tarifas por volumen',distribuidora_rutas:'Rutas y despachos',distribuidora_cobros:'Cobros mayoristas'};
+ const allowed=()=>new Set(window.nexoIsSuperadmin===true?Object.keys(moduleLabels):(window.nexoAllowedModules||[]));
+ const rubricsMarkup=()=>'<div class="nexo-rubric-heading"><div><span class="nexo-rubric-kicker">NEXO DIGITEX · SISTEMA MULTIRRUBRO</span><h1>Selecciona el rubro de tu negocio</h1><p>Presiona un icono para abrir los módulos correspondientes a esa actividad.</p></div></div><div class="nexo-rubric-grid">'+rubrics.map(r=>'<button type="button" class="nexo-rubric-tile" data-nexo-rubric="'+r.key+'"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><strong>'+r.label+'</strong><small>'+r.desc+'</small></button>').join('')+'</div>';
+ const section=document.createElement('section');section.id='nexoRubricHome';section.className='nexo-rubric-home';section.innerHTML=rubricsMarkup();home.insertBefore(section,home.firstChild);
+ function renderModules(r){
+  const access=allowed();
+  section.innerHTML='<div class="nexo-rubric-toolbar"><button type="button" class="nexo-rubric-back" data-nexo-back>← Todos los rubros</button><div class="nexo-rubric-title"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><div><h2>'+r.label+'</h2><p>Selecciona el icono del módulo que deseas abrir.</p></div></div></div><div class="nexo-module-grid">'+r.mods.map(k=>{
+   const ok=access.has(k)||window.nexoIsSuperadmin===true;
+   return '<button type="button" class="nexo-module-tile" data-nexo-module="'+k+'" '+(!ok?'disabled aria-disabled="true"':'')+'><span class="nexo-rubric-icon">'+svg(moduleIcons[k]||'box')+'</span><strong>'+moduleLabels[k]+'</strong>'+(!ok?'<small>🔒 No incluido en tu plan</small>':'')+'</button>';
+  }).join('')+'</div>';
+ }
+ section.addEventListener('click',e=>{
+  const back=e.target.closest('[data-nexo-back]');
+  if(back){section.innerHTML=rubricsMarkup();window.scrollTo({top:0,behavior:'smooth'});return}
+  const rb=e.target.closest('[data-nexo-rubric]');
+  if(rb){const r=rubrics.find(x=>x.key===rb.dataset.nexoRubric);if(r)renderModules(r);return}
+  const mod=e.target.closest('[data-nexo-module]');
+  if(mod&&!mod.disabled){if(typeof window.showPage==='function')window.showPage(mod.dataset.nexoModule);else{const nav=document.querySelector('#nav [data-page="'+mod.dataset.nexoModule+'"]');if(nav)nav.click()}}
+ });
+})();
+</script>
 </body></html>
