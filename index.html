@@ -1024,53 +1024,55 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
  };
  const svg=(name)=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+(icons[name]||icons.box)+'</svg>';
  const rubrics=[
-  {key:'farmacia',label:'Farmacias y boticas',icon:'pharmacy',desc:'Medicamentos, lotes y vencimientos',mods:['ventas','inventario','compras','clientes','caja','contabilidad','facturacion','farmacia_lotes','bodega_alertas','auditoria']},
-  {key:'restaurante',label:'Restaurantes y cafeterías',icon:'restaurant',desc:'Mesas, pedidos, comandas e insumos',mods:['ventas','inventario','compras','clientes','caja','contabilidad','rrhh','restaurante','delivery','cotizaciones','auditoria']},
-  {key:'agropecuaria',label:'Agropecuarias',icon:'farm',desc:'Insumos, semillas, lotes y trazabilidad',mods:['ventas','inventario','compras','clientes','caja','contabilidad','agro_lotes','agro_trazabilidad','sucursales','cuentas_pagar']},
-  {key:'bodega',label:'Bodegas y minimarkets',icon:'store',desc:'Ventas rápidas, barras, caja y reposición',mods:['ventas','inventario','compras','clientes','caja','tienda_online','bodega_alertas','cotizaciones','devoluciones','facturacion']},
-  {key:'tienda',label:'Tiendas y comercios',icon:'store',desc:'Ventas, compras, clientes y sucursales',mods:['ventas','inventario','compras','clientes','caja','contabilidad','tienda_online','cotizaciones','devoluciones','sucursales','facturacion','activos']},
+  {key:'farmacia',label:'Farmacias y boticas',icon:'pharmacy',desc:'Medicamentos, lotes y vencimientos',mods:['ventas','inventario','compras','clientes','caja','facturacion','farmacia_lotes','bodega_alertas']},
+  {key:'restaurante',label:'Restaurantes y cafeterías',icon:'restaurant',desc:'Mesas, pedidos, comandas e insumos',mods:['ventas','inventario','compras','clientes','caja','restaurante','delivery','cotizaciones']},
+  {key:'agropecuaria',label:'Agropecuarias',icon:'farm',desc:'Insumos, semillas, lotes y trazabilidad',mods:['ventas','inventario','compras','clientes','caja','agro_lotes','agro_trazabilidad','cuentas_pagar']},
+  {key:'bodega',label:'Bodegas y minimarkets',icon:'store',desc:'Ventas rápidas, caja y reposición',mods:['ventas','inventario','compras','clientes','caja','bodega_alertas','facturacion','tienda_online']},
+  {key:'tienda',label:'Tiendas y comercios',icon:'store',desc:'Ventas, compras, clientes y sucursales',mods:['ventas','inventario','compras','clientes','caja','tienda_online','cotizaciones','devoluciones','sucursales','facturacion']},
   {key:'ropa',label:'Tiendas de ropa y calzado',icon:'clothes',desc:'Tallas, colores, ventas e inventario',mods:['ventas','inventario','compras','clientes','caja','tienda_online','cotizaciones','devoluciones']},
   {key:'ferreteria',label:'Ferreterías',icon:'tools',desc:'Herramientas, materiales y existencias',mods:['ventas','inventario','compras','clientes','caja','cotizaciones','devoluciones','cuentas_pagar','sucursales']},
   {key:'repuestos',label:'Repuestos y accesorios',icon:'car',desc:'Piezas, compatibilidad y stock',mods:['ventas','inventario','compras','clientes','caja','cotizaciones','devoluciones','cuentas_pagar']},
   {key:'tecnologia',label:'Electrónica y tecnología',icon:'computer',desc:'Equipos, accesorios, ventas y garantías',mods:['ventas','inventario','compras','clientes','caja','devoluciones','activos','tienda_online','facturacion']},
   {key:'panaderia',label:'Panaderías y pastelerías',icon:'bread',desc:'Productos, insumos, producción y caja',mods:['ventas','inventario','compras','clientes','caja','rrhh','contabilidad','cotizaciones']},
-  {key:'salon_belleza',label:'Salones de belleza',icon:'beauty',desc:'Citas, servicios, personal y cobros',mods:['ventas','inventario','clientes','caja','rrhh','belleza_agenda','cotizaciones']},
+  {key:'salon_belleza',label:'Salones de belleza',icon:'beauty',desc:'Citas, servicios, personal y cobros',mods:['ventas','clientes','caja','rrhh','belleza_agenda','cotizaciones']},
   {key:'construccion',label:'Materiales de construcción',icon:'building',desc:'Materiales, compras y despacho',mods:['ventas','inventario','compras','clientes','caja','delivery','cotizaciones','cuentas_pagar','sucursales']},
-  {key:'distribuidora',label:'Mayoristas y distribuidores',icon:'truck',desc:'Volúmenes, almacenes, rutas y cobros',mods:['ventas','inventario','compras','clientes','caja','contabilidad','distribuidora_precios','distribuidora_rutas','distribuidora_cobros','delivery','sucursales']},
-  {key:'veterinaria',label:'Veterinarias',icon:'vet',desc:'Productos veterinarios, clientes y stock',mods:['ventas','inventario','compras','clientes','caja','rrhh','cotizaciones']},
+  {key:'distribuidora',label:'Mayoristas y distribuidores',icon:'truck',desc:'Volúmenes, almacenes, rutas y cobros',mods:['ventas','inventario','compras','clientes','caja','distribuidora_precios','distribuidora_rutas','distribuidora_cobros','delivery','sucursales']},
+  {key:'veterinaria',label:'Veterinarias',icon:'vet',desc:'Productos veterinarios, clientes y stock',mods:['ventas','inventario','compras','clientes','caja','cotizaciones']},
   {key:'hotel',label:'Hoteles y hospedajes',icon:'hotel',desc:'Reservas, servicios, cobros y personal',mods:['ventas','clientes','caja','contabilidad','rrhh','cotizaciones']},
-  {key:'lavanderia',label:'Lavanderías y servicios',icon:'laundry',desc:'Órdenes de servicio, clientes y pagos',mods:['ventas','clientes','caja','rrhh','cotizaciones','auditoria']},
+  {key:'lavanderia',label:'Lavanderías y servicios',icon:'laundry',desc:'Órdenes de servicio, clientes y pagos',mods:['ventas','clientes','caja','rrhh','cotizaciones']},
   {key:'servicios',label:'Servicios y oficinas',icon:'office',desc:'Clientes, cotizaciones, cobros y equipo',mods:['ventas','clientes','caja','contabilidad','rrhh','cotizaciones','facturacion','auditoria']},
   {key:'almacen',label:'Almacenes y logística',icon:'box',desc:'Entradas, salidas, transferencias y kardex',mods:['inventario','compras','sucursales','cuentas_pagar','auditoria','distribuidora_rutas']},
   {key:'taller',label:'Talleres y servicios técnicos',icon:'tools',desc:'Repuestos, órdenes de trabajo y cobros',mods:['ventas','inventario','compras','clientes','caja','taller_ordenes','cotizaciones','devoluciones']},
   {key:'libreria',label:'Librerías y útiles',icon:'package',desc:'Catálogo, códigos de barras y reposición',mods:['ventas','inventario','compras','clientes','caja','libreria_reposicion','tienda_online']},
-  {key:'delivery',label:'Distribución y delivery',icon:'truck',desc:'Pedidos, repartidores y rutas',mods:['ventas','clientes','caja','delivery','distribuidora_rutas','auditoria']},
-  {key:'otro',label:'Otros rubros',icon:'people',desc:'Configura módulos adecuados a tu actividad',mods:['ventas','inventario','compras','clientes','caja','contabilidad','rrhh','cotizaciones','facturacion']}
+  {key:'delivery',label:'Distribución y delivery',icon:'truck',desc:'Pedidos, repartidores y rutas',mods:['ventas','clientes','caja','delivery','distribuidora_rutas']},
+  {key:'otro',label:'Otros rubros',icon:'people',desc:'Módulos generales para tu actividad',mods:['ventas','inventario','compras','clientes','caja','contabilidad','rrhh','cotizaciones','facturacion']}
  ];
  const moduleIcons={ventas:'receipt',inventario:'package',compras:'truck',clientes:'people',caja:'money',contabilidad:'chart',rrhh:'people',tienda_online:'globe',cotizaciones:'receipt',devoluciones:'undo',sucursales:'building',facturacion:'receipt',cuentas_pagar:'money',activos:'box',auditoria:'clipboard',delivery:'truck',restaurante:'restaurant',farmacia_lotes:'pharmacy',bodega_alertas:'scan',belleza_agenda:'calendar',libreria_reposicion:'package',taller_ordenes:'tools',agro_lotes:'farm',agro_trazabilidad:'clipboard',distribuidora_precios:'receipt',distribuidora_rutas:'truck',distribuidora_cobros:'money'};
  const moduleLabels={ventas:'Ventas y punto de venta',inventario:'Productos, inventario y kardex',compras:'Compras y proveedores',clientes:'Clientes y cuentas por cobrar',caja:'Caja, bancos y gastos',contabilidad:'Contabilidad y reportes',rrhh:'Personal y RR. HH.',tienda_online:'Tienda online',cotizaciones:'Cotizaciones',devoluciones:'Devoluciones y garantías',sucursales:'Sucursales y almacenes',facturacion:'Facturación electrónica',cuentas_pagar:'Cuentas por pagar',activos:'Activos fijos',auditoria:'Auditoría y actividad',delivery:'Pedidos y delivery',restaurante:'Pedidos y comandas',farmacia_lotes:'Lotes y vencimientos',bodega_alertas:'Alertas de stock',belleza_agenda:'Agenda de belleza',libreria_reposicion:'Reposición de librería',taller_ordenes:'Órdenes de taller',agro_lotes:'Lotes agropecuarios',agro_trazabilidad:'Trazabilidad de insumos',distribuidora_precios:'Tarifas por volumen',distribuidora_rutas:'Rutas y despachos',distribuidora_cobros:'Cobros mayoristas'};
  const allowed=()=>new Set(window.nexoIsSuperadmin===true?Object.keys(moduleLabels):(window.nexoAllowedModules||[]));
- const rubricsMarkup=()=>'<div class="nexo-rubric-heading"><div><span class="nexo-rubric-kicker">NEXO DIGITEX · SISTEMA MULTIRRUBRO</span><h1>Selecciona el rubro de tu negocio</h1><p>Presiona un icono para abrir los módulos correspondientes a esa actividad.</p></div></div><div class="nexo-rubric-grid">'+rubrics.map(r=>'<button type="button" class="nexo-rubric-tile" data-nexo-rubric="'+r.key+'"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><strong>'+r.label+'</strong><small>'+r.desc+'</small></button>').join('')+'</div>';
+ const rubricsMarkup=()=>'<div class="nexo-rubric-heading"><div><span class="nexo-rubric-kicker">NEXO DIGITEX · SISTEMA MULTIRRUBRO</span><h1>Selecciona el rubro de tu negocio</h1><p>Presiona un icono para abrir únicamente los módulos de esa actividad.</p></div></div><div class="nexo-rubric-grid">'+rubrics.map(r=>'<button type="button" class="nexo-rubric-tile" onclick="window.nexoSelectRubric(\''+r.key+'\')" data-nexo-rubric="'+r.key+'"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><strong>'+r.label+'</strong><small>'+r.desc+'</small></button>').join('')+'</div>';
  const section=document.createElement('section');section.id='nexoRubricHome';section.className='nexo-rubric-home';section.innerHTML=rubricsMarkup();home.insertBefore(section,home.firstChild);
  function renderModules(r){
-  section.innerHTML='<div class="nexo-rubric-toolbar"><button type="button" class="nexo-rubric-back" data-nexo-back>← Todos los rubros</button><div class="nexo-rubric-title"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><div><h2>'+r.label+'</h2><p>Selecciona el icono del módulo que deseas abrir.</p></div></div></div><div class="nexo-module-grid">'+r.mods.map(k=>{
-   const label=moduleLabels[k]||k.replace(/_/g,' ').replace(/\\b\\w/g,c=>c.toUpperCase());
-   return '<button type="button" class="nexo-module-tile" data-nexo-module="'+k+'"><span class="nexo-rubric-icon">'+svg(moduleIcons[k]||'box')+'</span><strong>'+label+'</strong><small class="nexo-module-status">Abrir módulo →</small></button>';
+  section.innerHTML='<div class="nexo-rubric-toolbar"><button type="button" class="nexo-rubric-back" onclick="window.nexoShowAllRubrics()">← Todos los rubros</button><div class="nexo-rubric-title"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><div><h2>'+r.label+'</h2><p>Estos son los módulos correspondientes a este rubro.</p></div></div></div><div class="nexo-module-grid">'+r.mods.map(k=>{
+   const label=moduleLabels[k]||k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+   return '<button type="button" class="nexo-module-tile" onclick="window.nexoOpenModule(\''+k+'\')" data-nexo-module="'+k+'"><span class="nexo-rubric-icon">'+svg(moduleIcons[k]||'box')+'</span><strong>'+label+'</strong><small class="nexo-module-status">Abrir módulo →</small></button>';
   }).join('')+'</div>';
  }
+ window.nexoSelectRubric=function(key){const r=rubrics.find(x=>x.key===key);if(r){renderModules(r);window.scrollTo(0,0)}};
+ window.nexoShowAllRubrics=function(){section.innerHTML=rubricsMarkup();window.scrollTo(0,0)};
+ window.nexoOpenModule=function(key){
+  const nav=document.querySelector('#nav button[data-page="'+key+'"]');
+  if(nav && typeof showPage==='function'){showPage(key);return}
+  if(typeof window.showPage==='function'){window.showPage(key);return}
+  alert('No se encontró la pantalla del módulo '+key+'.');
+ };
  section.addEventListener('click',e=>{
-  const back=e.target.closest('[data-nexo-back]');
-  if(back){section.innerHTML=rubricsMarkup();window.scrollTo({top:0,behavior:'smooth'});return}
   const rb=e.target.closest('[data-nexo-rubric]');
-  if(rb){const r=rubrics.find(x=>x.key===rb.dataset.nexoRubric);if(r)renderModules(r);return}
+  if(rb){window.nexoSelectRubric(rb.dataset.nexoRubric);return}
+  const back=e.target.closest('[data-nexo-back]');
+  if(back){window.nexoShowAllRubrics();return}
   const mod=e.target.closest('[data-nexo-module]');
-  if(mod){
-   const key=mod.dataset.nexoModule;
-   // Usar la función principal del sistema; ella aplica los permisos reales del plan.
-   if(typeof window.showPage==='function')window.showPage(key);
-   else if(typeof showPage==='function')showPage(key);
-   else {const nav=document.querySelector('#nav [data-page="'+key+'"]');if(nav)nav.click();else alert('El módulo '+key+' no está registrado en el sistema.');}
-  }
+  if(mod)window.nexoOpenModule(mod.dataset.nexoModule);
  });
 })();
 </script>
