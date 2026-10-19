@@ -1053,10 +1053,9 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
  const rubricsMarkup=()=>'<div class="nexo-rubric-heading"><div><span class="nexo-rubric-kicker">NEXO DIGITEX · SISTEMA MULTIRRUBRO</span><h1>Selecciona el rubro de tu negocio</h1><p>Presiona un icono para abrir los módulos correspondientes a esa actividad.</p></div></div><div class="nexo-rubric-grid">'+rubrics.map(r=>'<button type="button" class="nexo-rubric-tile" data-nexo-rubric="'+r.key+'"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><strong>'+r.label+'</strong><small>'+r.desc+'</small></button>').join('')+'</div>';
  const section=document.createElement('section');section.id='nexoRubricHome';section.className='nexo-rubric-home';section.innerHTML=rubricsMarkup();home.insertBefore(section,home.firstChild);
  function renderModules(r){
-  const access=allowed();
   section.innerHTML='<div class="nexo-rubric-toolbar"><button type="button" class="nexo-rubric-back" data-nexo-back>← Todos los rubros</button><div class="nexo-rubric-title"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><div><h2>'+r.label+'</h2><p>Selecciona el icono del módulo que deseas abrir.</p></div></div></div><div class="nexo-module-grid">'+r.mods.map(k=>{
-   const ok=access.has(k)||window.nexoIsSuperadmin===true;
-   return '<button type="button" class="nexo-module-tile" data-nexo-module="'+k+'" '+(!ok?'disabled aria-disabled="true"':'')+'><span class="nexo-rubric-icon">'+svg(moduleIcons[k]||'box')+'</span><strong>'+moduleLabels[k]+'</strong>'+(!ok?'<small>🔒 No incluido en tu plan</small>':'')+'</button>';
+   const label=moduleLabels[k]||k.replace(/_/g,' ').replace(/\\b\\w/g,c=>c.toUpperCase());
+   return '<button type="button" class="nexo-module-tile" data-nexo-module="'+k+'"><span class="nexo-rubric-icon">'+svg(moduleIcons[k]||'box')+'</span><strong>'+label+'</strong><small class="nexo-module-status">Abrir módulo →</small></button>';
   }).join('')+'</div>';
  }
  section.addEventListener('click',e=>{
@@ -1065,7 +1064,13 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
   const rb=e.target.closest('[data-nexo-rubric]');
   if(rb){const r=rubrics.find(x=>x.key===rb.dataset.nexoRubric);if(r)renderModules(r);return}
   const mod=e.target.closest('[data-nexo-module]');
-  if(mod&&!mod.disabled){if(typeof window.showPage==='function')window.showPage(mod.dataset.nexoModule);else{const nav=document.querySelector('#nav [data-page="'+mod.dataset.nexoModule+'"]');if(nav)nav.click()}}
+  if(mod){
+   const key=mod.dataset.nexoModule;
+   // Usar la función principal del sistema; ella aplica los permisos reales del plan.
+   if(typeof window.showPage==='function')window.showPage(key);
+   else if(typeof showPage==='function')showPage(key);
+   else {const nav=document.querySelector('#nav [data-page="'+key+'"]');if(nav)nav.click();else alert('El módulo '+key+' no está registrado en el sistema.');}
+  }
  });
 })();
 </script>
