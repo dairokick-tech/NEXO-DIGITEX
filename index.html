@@ -1156,30 +1156,5 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
  });
 })();
 </script>
-<!-- NEXO DIGITEX: barra de iconos estilo punto de venta -->
-<style id="nexo-video-toolbar">
-@media(min-width:721px){
- .layout{display:block!important;min-height:100vh}
- .sidebar{position:sticky!important;top:0;z-index:50;width:100%!important;min-height:0!important;height:auto!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;padding:8px 16px!important;overflow-x:auto;border-right:0!important;border-bottom:2px solid #d1b52d;background:#f4d64e!important;color:#26364a!important}
- .brand{flex:0 0 auto;border:0!important;padding:0 12px 0 0!important;margin:0!important;border-right:1px solid #c4aa32}
- .brandmark{width:34px!important;height:34px!important;background:#183e63!important;border-radius:5px!important}
- .brand strong{color:#183e63!important;font-size:14px!important;white-space:nowrap}
- .brand small,.company,.navlabel,.sidebarfoot{display:none!important}
- .nav{display:flex!important;flex:1 1 auto!important;align-items:center!important;gap:5px!important;min-width:max-content}
- .nav button{width:43px!important;height:42px!important;min-width:43px!important;padding:5px!important;justify-content:center!important;text-align:center!important;border:1px solid transparent!important;border-radius:5px!important;background:transparent!important;color:#26364a!important;font-size:0!important;gap:0!important;position:relative}
- .nav button .ico{display:block!important;width:auto!important;font-size:21px!important;line-height:1!important}
- .nav button:hover,.nav button.active{background:#fff9d9!important;color:#123b63!important;border-color:#c5a92b!important;box-shadow:inset 0 -3px #183e63!important}
- .main{min-width:0!important;background:#f2f6fa}
- .topbar{position:relative!important;top:auto!important}
-}
-@media(max-width:720px){.sidebar{background:#f4d64e!important;color:#26364a!important}.brand strong{color:#183e63!important}.nav button{color:#26364a!important}.nav button.active{background:#fff9d9!important;color:#123b63!important}}
-.nav button[title]:hover::after{content:attr(title);position:absolute;top:calc(100% + 7px);left:50%;transform:translateX(-50%);z-index:1000;background:#183e63;color:#fff;font-size:11px;line-height:1.2;white-space:nowrap;padding:7px 9px;border-radius:4px;box-shadow:0 4px 12px #102d4540;pointer-events:none}
-</style>
-<script id="nexo-video-toolbar-labels">
-(function(){
- function labelButtons(){document.querySelectorAll('.nav button').forEach(function(btn){var text=(btn.innerText||btn.textContent||'').replace(/\s+/g,' ').trim();if(!text)return;btn.setAttribute('title',text);btn.setAttribute('aria-label',text);});}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',labelButtons);else labelButtons();
- var nav=document.querySelector('.nav');if(nav&&window.MutationObserver)new MutationObserver(labelButtons).observe(nav,{childList:true,subtree:true,characterData:true});
-})();
-</script>
+
 </body></html>
