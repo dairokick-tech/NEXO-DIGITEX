@@ -314,33 +314,6 @@ async function renderUniversalPOS(page,body,alert,company){
   }finally{btn.disabled=false}
  };
  body.querySelector("#posTestPrinter").onclick=()=>{const w=window.open("","_blank","width=420,height=420");if(!w){showMessage("El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio.",true);return}const pf=body.querySelector("#posPrintFormat").value,pw=pf==="58"?"48mm":pf==="a4"?"190mm":"72mm",ps=pf==="a4"?"A4":"auto";w.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prueba de impresora</title><style>body{font:14px Arial;text-align:center;padding:8px;width:'+pw+';max-width:100%;margin:0 auto;box-sizing:border-box}h2{font-size:18px}button{padding:10px 16px}@page{size:'+ps+';margin:5mm}@media print{button{display:none}}</style><body><h2>'+esc(companyInfo.name||"NEXO DIGITEX")+'</h2><p>PRUEBA DE IMPRESIÓN</p><p>Formato: '+esc(pf==="a4"?"A4 / factura":"Ticket "+pf+" mm")+'</p><p>Si puedes leer este texto, la impresora seleccionada está imprimiendo correctamente.</p><p>'+esc(new Date().toLocaleString("es-PE"))+'</p><button onclick="window.print()">Elegir impresora e imprimir</button>
-<!-- NEXO DIGITEX: barra de iconos estilo punto de venta -->
-<style id="nexo-video-toolbar">
-@media(min-width:721px){
- .layout{display:block!important;min-height:100vh}
- .sidebar{position:sticky!important;top:0;z-index:50;width:100%!important;min-height:0!important;height:auto!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;padding:8px 16px!important;overflow-x:auto;border-right:0!important;border-bottom:2px solid #d1b52d;background:#f4d64e!important;color:#26364a!important}
- .brand{flex:0 0 auto;border:0!important;padding:0 12px 0 0!important;margin:0!important;border-right:1px solid #c4aa32}
- .brandmark{width:34px!important;height:34px!important;background:#183e63!important;border-radius:5px!important}
- .brand strong{color:#183e63!important;font-size:14px!important;white-space:nowrap}
- .brand small,.company,.navlabel,.sidebarfoot{display:none!important}
- .nav{display:flex!important;flex:1 1 auto!important;align-items:center!important;gap:5px!important;min-width:max-content}
- .nav button{width:43px!important;height:42px!important;min-width:43px!important;padding:5px!important;justify-content:center!important;text-align:center!important;border:1px solid transparent!important;border-radius:5px!important;background:transparent!important;color:#26364a!important;font-size:0!important;gap:0!important;position:relative}
- .nav button .ico{display:block!important;width:auto!important;font-size:21px!important;line-height:1!important}
- .nav button:hover,.nav button.active{background:#fff9d9!important;color:#123b63!important;border-color:#c5a92b!important;box-shadow:inset 0 -3px #183e63!important}
- .main{min-width:0!important;background:#f2f6fa}
- .topbar{position:relative!important;top:auto!important}
-}
-@media(max-width:720px){.sidebar{background:#f4d64e!important;color:#26364a!important}.brand strong{color:#183e63!important}.nav button{color:#26364a!important}.nav button.active{background:#fff9d9!important;color:#123b63!important}}
-.nav button[title]:hover::after{content:attr(title);position:absolute;top:calc(100% + 7px);left:50%;transform:translateX(-50%);z-index:1000;background:#183e63;color:#fff;font-size:11px;line-height:1.2;white-space:nowrap;padding:7px 9px;border-radius:4px;box-shadow:0 4px 12px #102d4540;pointer-events:none}
-</style>
-<script id="nexo-video-toolbar-labels">
-(function(){
- function labelButtons(){document.querySelectorAll('.nav button').forEach(function(btn){var text=(btn.innerText||btn.textContent||'').replace(/\s+/g,' ').trim();if(!text)return;btn.setAttribute('title',text);btn.setAttribute('aria-label',text);});}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',labelButtons);else labelButtons();
- var nav=document.querySelector('.nav');if(nav&&window.MutationObserver)new MutationObserver(labelButtons).observe(nav,{childList:true,subtree:true,characterData:true});
-})();
-</script>
-
 </body></html>');w.document.close()};
  body.querySelector("#posNewProductToggle").onclick=()=>{const f=body.querySelector("#posNewProductForm");f.style.display=f.style.display==="none"?"block":"none"};body.querySelector("#posNewProductForm").onsubmit=async e=>{e.preventDefault();const f=e.currentTarget,m=body.querySelector("#posNewProductMessage"),b=f.querySelector("button[type=submit]"),data=new FormData(f);b.disabled=true;m.textContent="Guardando…";const payload={company_id:company,rubric_type:window.nexoActiveRubric||window.nexoBusinessType||"otro",name:String(data.get("name")||"").trim(),sku:String(data.get("sku")||"").trim()||null,barcode:String(data.get("barcode")||"").trim()||null,category:String(data.get("category")||"").trim()||null,cost:Number(data.get("cost")||0),price:Number(data.get("price")||0),stock:Number(data.get("stock")||0),min_stock:0,unit:"unidad",active:true};const {error}=await client.from("nexo_products").insert(payload);if(error){m.textContent="No se pudo guardar: "+error.message}else{m.textContent="Producto creado.";f.reset();f.style.display="none";await load()}b.disabled=false};body.querySelector("#posClear").onclick=()=>{cart=[];renderCart();message.style.display="none"};
  body.querySelector("#posSaveQr").onclick=async()=>{const file=body.querySelector("#posQrFile").files[0],m=body.querySelector("#posQrMessage"),b=body.querySelector("#posSaveQr");if(!file){m.textContent="Selecciona primero una imagen QR.";return}if(file.size>5*1024*1024){m.textContent="La imagen no puede superar 5 MB.";return}b.disabled=true;m.textContent="Guardando QR…";try{const ext=(file.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"");const path=company+"/"+Date.now()+"-qr."+ext;const up=await client.storage.from("nexo-payment-qrs").upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;const url=client.storage.from("nexo-payment-qrs").getPublicUrl(path).data.publicUrl;const upd=await client.from("nexo_companies").update({payment_qr_url:url}).eq("id",company);if(upd.error)throw upd.error;companyInfo.payment_qr_url=url;m.textContent="QR guardado correctamente.";updateQr()}catch(err){m.textContent="No se pudo guardar el QR: "+(err.message||"Error")}finally{b.disabled=false}};
@@ -1181,6 +1154,32 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
    window.nexoOpenModule(key);
   }
  });
+})();
+</script>
+<!-- NEXO DIGITEX: barra de iconos estilo punto de venta -->
+<style id="nexo-video-toolbar">
+@media(min-width:721px){
+ .layout{display:block!important;min-height:100vh}
+ .sidebar{position:sticky!important;top:0;z-index:50;width:100%!important;min-height:0!important;height:auto!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;padding:8px 16px!important;overflow-x:auto;border-right:0!important;border-bottom:2px solid #d1b52d;background:#f4d64e!important;color:#26364a!important}
+ .brand{flex:0 0 auto;border:0!important;padding:0 12px 0 0!important;margin:0!important;border-right:1px solid #c4aa32}
+ .brandmark{width:34px!important;height:34px!important;background:#183e63!important;border-radius:5px!important}
+ .brand strong{color:#183e63!important;font-size:14px!important;white-space:nowrap}
+ .brand small,.company,.navlabel,.sidebarfoot{display:none!important}
+ .nav{display:flex!important;flex:1 1 auto!important;align-items:center!important;gap:5px!important;min-width:max-content}
+ .nav button{width:43px!important;height:42px!important;min-width:43px!important;padding:5px!important;justify-content:center!important;text-align:center!important;border:1px solid transparent!important;border-radius:5px!important;background:transparent!important;color:#26364a!important;font-size:0!important;gap:0!important;position:relative}
+ .nav button .ico{display:block!important;width:auto!important;font-size:21px!important;line-height:1!important}
+ .nav button:hover,.nav button.active{background:#fff9d9!important;color:#123b63!important;border-color:#c5a92b!important;box-shadow:inset 0 -3px #183e63!important}
+ .main{min-width:0!important;background:#f2f6fa}
+ .topbar{position:relative!important;top:auto!important}
+}
+@media(max-width:720px){.sidebar{background:#f4d64e!important;color:#26364a!important}.brand strong{color:#183e63!important}.nav button{color:#26364a!important}.nav button.active{background:#fff9d9!important;color:#123b63!important}}
+.nav button[title]:hover::after{content:attr(title);position:absolute;top:calc(100% + 7px);left:50%;transform:translateX(-50%);z-index:1000;background:#183e63;color:#fff;font-size:11px;line-height:1.2;white-space:nowrap;padding:7px 9px;border-radius:4px;box-shadow:0 4px 12px #102d4540;pointer-events:none}
+</style>
+<script id="nexo-video-toolbar-labels">
+(function(){
+ function labelButtons(){document.querySelectorAll('.nav button').forEach(function(btn){var text=(btn.innerText||btn.textContent||'').replace(/\s+/g,' ').trim();if(!text)return;btn.setAttribute('title',text);btn.setAttribute('aria-label',text);});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',labelButtons);else labelButtons();
+ var nav=document.querySelector('.nav');if(nav&&window.MutationObserver)new MutationObserver(labelButtons).observe(nav,{childList:true,subtree:true,characterData:true});
 })();
 </script>
 </body></html>
