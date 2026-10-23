@@ -58,7 +58,28 @@ function editProduct(id){const p=db.products.find(p=>p.id===id);if(!p)return;$('
 function deleteProduct(id){if(!confirm('¿Eliminar este producto? Las ventas históricas se conservan.'))return;db.products=db.products.filter(p=>p.id!==id);cart=cart.filter(i=>i.id!==id);save()}
 function renderInventory(){const q=$('productFilter').value.trim().toLocaleLowerCase();$('inventoryBody').innerHTML=db.products.filter(p=>(p.name+' '+p.code+' '+p.category).toLocaleLowerCase().includes(q)).map(p=>'<tr><td>'+esc(p.name)+'<br><small>'+esc(p.category||'General')+'</small></td><td>'+esc(p.code||'—')+'</td><td>'+money(p.price)+'</td><td>'+p.stock+'</td><td><div class="actions"><button class="btn" data-edit="'+p.id+'">Editar</button><button class="btn danger" data-delete="'+p.id+'">Eliminar</button></div></td></tr>').join('');$('inventoryBody').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editProduct(b.dataset.edit));$('inventoryBody').querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteProduct(b.dataset.delete))}
 $('productFilter').addEventListener('input',renderInventory);$('cancelEdit').onclick=()=>{$('productForm').reset();$('editId').value='';$('pCost').value='0';$('pStock').value='0';note('productMsg','Formulario limpio.')};
-$('finishSale').onclick=()=>{if(!cart.length){note('saleMsg','Agrega al menos un producto.');return}for(const i of cart){const p=db.products.find(p=>p.id===i.id);if(!p||p.stock<i.qty){note('saleMsg','Stock insuficiente para '+i.name+'. Revisa el inventario.');return}}const sum=total(),paid=Number($('received').value)||0;if($('payment').value==='Efectivo'&&paid<sum){note('saleMsg','El efectivo recibido no cubre el total.');return}const sale={id:uid(),number:'V-'+Date.now().toString().slice(-9),date:new Date().toISOString(),customer:$('customer').value.trim()||'Consumidor final',payment:$('payment').value,items:cart.map(i=>({...i})),total:sum,received:$('payment').value==='Efectivo'?paid:sum,change:$('payment').value==='Efectivo'?Math.round((paid-sum)*100)/100:0};cart.forEach(i=>{const p=db.products.find(p=>p.id===i.id);p.stock-=i.qty});db.sales.unshift(sale);cart=[];save();$('received').value='';$('customer').value='';note('saleMsg','Venta registrada localmente: '+sale.number);renderCart();printSale(sale)};
+$('finishSale').onclick=()=>{
+ if(!cart.length){note('saleMsg','Agrega al menos un producto.');return}
+ for(const i of cart){const p=db.products.find(p=>p.id===i.id);if(!p||p.stock<i.qty){note('saleMsg','Stock insuficiente para '+i.name+'. Revisa el inventario.');return}}
+ const sum=total(),paid=Number($('received').value)||0;
+ if($('payment').value==='Efectivo'&&paid<sum){note('saleMsg','El efectivo recibido no cubre el total.');return}
+ const sale={id:uid(),number:'V-'+Date.now().toString().slice(-9),date:new Date().toISOString(),customer:$('customer').value.trim()||'Consumidor final',payment:$('payment').value,items:cart.map(i=>({...i})),total:sum,received:$('payment').value==='Efectivo'?paid:sum,change:$('payment').value==='Efectivo'?Math.round((paid-sum)*100)/100:0,storageMode:'local'};
+ // Persistir primero el estado completo. Si el navegador rechaza la escritura, no se descuenta stock ni se imprime un ticket de venta guardada.
+ let nextDb;
+ try{
+  nextDb=JSON.parse(JSON.stringify(db));
+  for(const i of cart){const p=nextDb.products.find(p=>p.id===i.id);if(!p||p.stock<i.qty){note('saleMsg','El inventario cambió. Revisa el carrito e inténtalo otra vez.');return}p.stock-=i.qty}
+  nextDb.sales.unshift(sale);
+  localStorage.setItem(KEY,JSON.stringify(nextDb));
+ }catch(err){
+  console.error('No se pudo persistir la venta:',err);
+  note('saleMsg','VENTA NO GUARDADA. No se confirmó el cobro en el sistema porque el navegador no pudo guardar los datos. Exporta un respaldo y libera espacio antes de reintentar.');
+  return;
+ }
+ db=nextDb;cart=[];renderAll();$('received').value='';$('customer').value='';
+ note('saleMsg','Venta '+sale.number+' guardada en este dispositivo. Aún no está sincronizada con otros equipos ni es comprobante SUNAT.');
+ renderCart();printSale(sale)
+};
 function printSale(s){$('printArea').innerHTML='<h2>NOVA DIGITEX</h2><p>PUNTO DE VENTA · TICKET INTERNO</p><hr><p>'+esc(s.number)+'<br>'+esc(new Date(s.date).toLocaleString('es-PE'))+'<br>Cliente: '+esc(s.customer)+'</p><hr>'+s.items.map(i=>'<p>'+esc(i.name)+'<br>'+i.qty+' × '+money(i.price)+' = '+money(i.qty*i.price)+'</p>').join('')+'<hr><p><b>TOTAL: '+money(s.total)+'</b><br>Pago: '+esc(s.payment)+'<br>Recibido: '+money(s.received)+'<br>Vuelto: '+money(s.change)+'</p><hr><p>Ticket interno. No es comprobante electrónico SUNAT.</p>'; $('printArea').classList.remove('hidden');window.print();setTimeout(()=>$('printArea').classList.add('hidden'),500)}
 function renderHistory(){const from=$('fromDate').value,to=$('toDate').value;const list=db.sales.filter(s=>(!from||s.date.slice(0,10)>=from)&&(!to||s.date.slice(0,10)<=to));$('salesBody').innerHTML=list.map(s=>'<tr><td>'+esc(s.number)+'<br><small>'+esc(new Date(s.date).toLocaleString('es-PE'))+'</small></td><td>'+esc(s.customer)+'</td><td>'+esc(s.payment)+'</td><td>'+money(s.total)+'</td><td><button class="btn" data-ticket="'+s.id+'">Imprimir</button></td></tr>').join('');$('salesBody').querySelectorAll('[data-ticket]').forEach(b=>b.onclick=()=>{const s=db.sales.find(s=>s.id===b.dataset.ticket);if(s)printSale(s)});$('mCount').textContent=list.length;$('mTotal').textContent=money(list.reduce((s,x)=>s+x.total,0));$('mProducts').textContent=db.products.length}
 $('filterSales').onclick=renderHistory;
