@@ -70,15 +70,8 @@ Deno.serve(async (req: Request) => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) return json({ error: "unauthorized" }, 401);
 
-  const { data: isMember, error: memberError } = await supabase.rpc(
-    "nexo_is_company_member",
-    { p_company_id: companyId },
-  );
-  if (memberError) {
-    console.error("Membership check failed", memberError.message);
-    return json({ error: "membership_check_failed" }, 500);
-  }
-  if (isMember !== true) return json({ error: "company_access_denied" }, 403);
+  // Membership is enforced by the INSERT/SELECT RLS policies on
+  // nexo_sync_operations; this avoids duplicating the helper RPC contract here.
 
   const row = {
     company_id: companyId,
