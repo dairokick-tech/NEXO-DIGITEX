@@ -1,8 +1,9 @@
-/* NOVA DIGITEX POS — caché de aplicación para uso local sin conexión.
- * Solo cachea la interfaz pública. No almacena ventas ni credenciales.
+/* NOVA DIGITEX POS — caché de interfaz para volver a abrir el POS sin internet.
+ * No guarda credenciales ni reemplaza el respaldo de ventas.
  */
 'use strict';
-const CACHE_NAME = 'nova-digitex-pos-v2';
+
+const CACHE_NAME = 'nova-digitex-pos-v3';
 const APP_SHELL = ['./pos.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
@@ -26,40 +27,54 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
+
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  const isPos = url.pathname.endsWith('/pos.html') || url.pathname === '/pos.html';
-  const isManifest = url.pathname.endsWith('/manifest.webmanifest');
+  const path = url.pathname.replace(/\\/+$/, '') || '/';
+  const isPos = path.endsWith('/pos.html') || path === '/pos.html';
+  const isManifest = path.endsWith('/manifest.webmanifest');
   if (!isPos && !isManifest) return;
 
+  // Para navegar al POS: red primero para actualizar, caché como respaldo offline.
   if (request.mode === 'navigate' && isPos) {
     event.respondWith((async () => {
       try {
         const response = await fetch(request);
         if (response && response.ok) {
           const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
           await cache.put('./pos.html', response.clone());
         }
         return response;
       } catch {
-        return (await caches.match('./pos.html')) || Response.error();
+        return (await caches.match(request)) ||
+          (await caches.match('./pos.html')) ||
+          Response.error();
       }
     })());
     return;
   }
 
+  // Para recursos del shell: caché primero; actualización en segundo plano.
   event.respondWith((async () => {
-    const cached = await caches.match(request) || await caches.match(isPos ? './pos.html' : './manifest.webmanifest');
+    const cached = await caches.match(request) ||
+      await caches.match(isPos ? './pos.html' : './manifest.webmanifest');
     if (cached) {
-      fetch(request).then(async response => {
+      event.waitUntil(fetch(request).then(async response => {
         if (response && response.ok) {
           const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
           await cache.put(isPos ? './pos.html' : './manifest.webmanifest', response);
         }
-      }).catch(() => {});
+      }).catch(() => {}));
       return cached;
     }
-    return fetch(request);
+    const response = await fetch(request);
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, response.clone());
+    }
+    return response;
   })());
 });
