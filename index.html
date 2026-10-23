@@ -709,6 +709,9 @@ setupDashboardToggles();
     return;
   }
   // El rol de Superadministrador tiene prioridad sobre el modo de acceso de la URL.
+  // El rol verificado manda sobre la pantalla inicial: refrescar rubros tras resolver el perfil.
+  window.nexoIsSuperadmin=!!isSuperadmin;
+  if(typeof window.nexoRefreshRubricHome==='function')window.nexoRefreshRubricHome();
   hideGate();
   const adminNav=document.querySelector('#nav button[data-page="admin"]');
   if(adminNav)adminNav.style.display=isSuperadmin?'':'none';
@@ -717,6 +720,10 @@ setupDashboardToggles();
   const userlabel=document.querySelector('.userlabel');
   if(userlabel){userlabel.querySelector('b').textContent=isSuperadmin?'Superadministrador':'Usuario empresarial';const sub=userlabel.querySelector('div');if(sub)sub.textContent=isSuperadmin?'Control central NEXO DIGITEX':'Espacio de tu empresa';}
   if(isSuperadmin){
+    // Acceso global: el superadministrador no depende de rubro ni de un plan empresarial.
+    window.nexoAllowedModules=Object.keys(moduleInfo).filter(k=>k!=='admin');
+    window.nexoBusinessType=null;
+    window.nexoPlanName='Acceso total';
     window.nexoCompanyId=null;
     const box=document.querySelector('.company');
     if(box)box.innerHTML='<b>Panel central NEXO DIGITEX</b><small>Sesión de Superadministrador</small>';
