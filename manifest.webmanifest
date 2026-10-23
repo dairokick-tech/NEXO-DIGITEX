@@ -1,0 +1,12 @@
+{
+  "name": "NOVA DIGITEX Punto de Venta",
+  "short_name": "NOVA POS",
+  "description": "Punto de venta local para operar sin conexión",
+  "lang": "es-PE",
+  "start_url": "./pos.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef3f8",
+  "theme_color": "#123b63",
+  "icons": []
+}
