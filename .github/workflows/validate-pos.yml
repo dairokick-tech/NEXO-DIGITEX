@@ -17,9 +17,15 @@ jobs:
           import re
           from pathlib import Path
           html = Path("pos.html").read_text(encoding="utf-8")
-          scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", html, flags=re.S|re.I)
+          scripts = re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>", html, flags=re.S|re.I)
           if not scripts:
               raise SystemExit("No inline script found in pos.html")
-          Path("/tmp/pos-inline.js").write_text("\n".join(scripts), encoding="utf-8")
+          Path("/tmp/pos-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
           PY
           node --check /tmp/pos-inline.js
+      - name: Check service worker JavaScript syntax
+        run: node --check sw.js
+      - name: Validate PWA manifest JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); console.log('manifest.webmanifest: valid JSON')"
+      - name: Check offline shell files exist
+        run: test -s pos.html && test -s manifest.webmanifest && test -s sw.js
