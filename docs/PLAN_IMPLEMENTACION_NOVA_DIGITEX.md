@@ -32,3 +32,15 @@ Esta migración es infraestructura, no una sincronización completa por sí sola
 - Nunca incluir `service_role`, contraseñas ni certificados privados en el frontend o en el repositorio.
 - No aplicar la migración a producción sin validar primero las funciones RLS existentes y tener una copia de respaldo.
 - La rama de trabajo no cambia automáticamente el sitio publicado desde `main`.
+
+
+## Diagnóstico SQL añadido (solo lectura)
+Se añadió `docs/SQL_DIAGNOSTICO_SEGURO_NOVA_DIGITEX.sql`. Sus consultas inspeccionan nombres de tablas, columnas, restricciones, funciones y políticas RLS; no insertan, actualizan ni borran datos. Antes de crear un procesador de sincronización hay que contrastar sus resultados con el esquema real de Supabase. Esto evita inventar nombres de columnas o alterar el checkout existente y reduce el riesgo de duplicar ventas o descontar stock dos veces.
+
+### Cómo ejecutarlo
+1. Abre el proyecto Supabase conectado a esta aplicación y entra en SQL Editor.
+2. Revisa el archivo SQL de diagnóstico y ejecútalo con una cuenta administradora.
+3. Guarda los resultados de las seis consultas; no compartas contraseñas, tokens ni claves privadas.
+4. Con esos resultados se puede implementar el procesador transaccional ajustado a las tablas y firmas reales.
+
+El procesador de sincronización, la emisión SUNAT y los instaladores de Windows/Android continúan pendientes; no se presentan como terminados ni probados.
