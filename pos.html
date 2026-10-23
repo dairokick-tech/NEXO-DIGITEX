@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<header><div><h1>NOVA DIGITEX · Punto de venta</h1><small>Terminal local · ventas guardadas en este dispositivo</small></div><span id="netStatus" class="status">Comprobando conexión…</span></header>
+<header><div><h1>NOVA DIGITEX · Punto de venta</h1><small>Terminal local · ventas guardadas en este dispositivo</small></div><div class="row" style="flex:0 1 auto"><span id="netStatus" class="status">Comprobando conexión…</span><span id="pendingStatus" class="status off">Pendientes: 0</span></div></header>
 <main class="wrap">
 <div class="warning"><b>Importante:</b> esta versión guarda productos y ventas en el almacenamiento de este navegador/dispositivo. No sincroniza todavía con otros equipos ni emite comprobantes electrónicos SUNAT. Exporta copias de seguridad regularmente; borrar los datos del navegador puede eliminarlos.</div>
 <div class="tabs no-print"><button class="active" data-tab="sale">Venta (POS)</button><button data-tab="products">Productos</button><button data-tab="history">Ventas e informes</button><button data-tab="backup">Copias de seguridad</button></div>
@@ -39,10 +39,10 @@ const money=n=>'S/ '+(Number(n)||0).toLocaleString('es-PE',{minimumFractionDigit
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
 let db=loadDb(),cart=[];
-function loadDb(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');return{products:Array.isArray(x.products)?x.products:[],sales:Array.isArray(x.sales)?x.sales:[]}}catch{return{products:[],sales:[]}}}
+function loadDb(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');return{products:Array.isArray(x.products)?x.products:[],sales:Array.isArray(x.sales)?x.sales:[],pendingSync:Array.isArray(x.pendingSync)?x.pendingSync:[]}}catch{return{products:[],sales:[]}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));renderAll();return true}catch(err){console.error('No se pudieron guardar los datos locales:',err);note('backupMsg','No se pudo guardar en este dispositivo (posible falta de espacio). Exporta un respaldo y libera espacio antes de continuar.');return false}}
 function note(id,msg){$(id).textContent=msg}
-function setNet(){const el=$('netStatus');el.textContent=navigator.onLine?'Modo local · conexión disponible':'Sin internet · modo local';el.classList.toggle('off',!navigator.onLine)}
+function setNet(){const el=$('netStatus');el.textContent=navigator.onLine?'Conexión disponible · POS local':'Sin internet · POS local';el.classList.toggle('off',!navigator.onLine);const pending=db.pendingSync?.length||0;$('pendingStatus').textContent='Pendientes de sincronizar: '+pending;$('pendingStatus').classList.toggle('off',pending>0)}
 window.addEventListener('online',setNet);window.addEventListener('offline',setNet);setNet();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));renderAll()}));
@@ -70,23 +70,25 @@ $('finishSale').onclick=()=>{
   nextDb=JSON.parse(JSON.stringify(db));
   for(const i of cart){const p=nextDb.products.find(p=>p.id===i.id);if(!p||p.stock<i.qty){note('saleMsg','El inventario cambió. Revisa el carrito e inténtalo otra vez.');return}p.stock-=i.qty}
   nextDb.sales.unshift(sale);
+  nextDb.pendingSync=Array.isArray(nextDb.pendingSync)?nextDb.pendingSync:[];
+  nextDb.pendingSync.push({operationId:sale.id,operationType:'sale.create',createdAt:sale.date,status:'queued',payload:{sale}});
   localStorage.setItem(KEY,JSON.stringify(nextDb));
  }catch(err){
   console.error('No se pudo persistir la venta:',err);
   note('saleMsg','VENTA NO GUARDADA. No se confirmó el cobro en el sistema porque el navegador no pudo guardar los datos. Exporta un respaldo y libera espacio antes de reintentar.');
   return;
  }
- db=nextDb;cart=[];renderAll();$('received').value='';$('customer').value='';
- note('saleMsg','Venta '+sale.number+' guardada en este dispositivo. Aún no está sincronizada con otros equipos ni es comprobante SUNAT.');
+ db=nextDb;cart=[];renderAll();setNet();$('received').value='';$('customer').value='';
+ note('saleMsg','Venta '+sale.number+' guardada localmente. Pendiente de sincronizar; no es comprobante SUNAT.');
  renderCart();printSale(sale)
 };
 function printSale(s){$('printArea').innerHTML='<h2>NOVA DIGITEX</h2><p>PUNTO DE VENTA · TICKET INTERNO</p><hr><p>'+esc(s.number)+'<br>'+esc(new Date(s.date).toLocaleString('es-PE'))+'<br>Cliente: '+esc(s.customer)+'</p><hr>'+s.items.map(i=>'<p>'+esc(i.name)+'<br>'+i.qty+' × '+money(i.price)+' = '+money(i.qty*i.price)+'</p>').join('')+'<hr><p><b>TOTAL: '+money(s.total)+'</b><br>Pago: '+esc(s.payment)+'<br>Recibido: '+money(s.received)+'<br>Vuelto: '+money(s.change)+'</p><hr><p>Ticket interno. No es comprobante electrónico SUNAT.</p>'; $('printArea').classList.remove('hidden');window.print();setTimeout(()=>$('printArea').classList.add('hidden'),500)}
 function renderHistory(){const from=$('fromDate').value,to=$('toDate').value;const list=db.sales.filter(s=>(!from||s.date.slice(0,10)>=from)&&(!to||s.date.slice(0,10)<=to));$('salesBody').innerHTML=list.map(s=>'<tr><td>'+esc(s.number)+'<br><small>'+esc(new Date(s.date).toLocaleString('es-PE'))+'</small></td><td>'+esc(s.customer)+'</td><td>'+esc(s.payment)+'</td><td>'+money(s.total)+'</td><td><button class="btn" data-ticket="'+s.id+'">Imprimir</button></td></tr>').join('');$('salesBody').querySelectorAll('[data-ticket]').forEach(b=>b.onclick=()=>{const s=db.sales.find(s=>s.id===b.dataset.ticket);if(s)printSale(s)});$('mCount').textContent=list.length;$('mTotal').textContent=money(list.reduce((s,x)=>s+x.total,0));$('mProducts').textContent=db.products.length}
 $('filterSales').onclick=renderHistory;
-function renderAll(){renderProducts();renderCart();renderInventory();renderHistory();$('storageInfo').textContent=db.products.length+' productos y '+db.sales.length+' ventas guardados en este dispositivo.'}
+function renderAll(){renderProducts();renderCart();renderInventory();renderHistory();$('storageInfo').textContent=db.products.length+' productos, '+db.sales.length+' ventas y '+(db.pendingSync?.length||0)+' operaciones pendientes guardados en este dispositivo.';const pending=$('pendingStatus');if(pending){pending.textContent='Pendientes de sincronizar: '+(db.pendingSync?.length||0);pending.classList.toggle('off',(db.pendingSync?.length||0)>0)}}
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({format:'NOVA_DIGITEX_LOCAL_BACKUP',version:1,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nova-digitex-respaldo-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);note('backupMsg','Copia descargada. Guárdala fuera de este dispositivo.')};
-$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());if(x.format!=='NOVA_DIGITEX_LOCAL_BACKUP'||!Array.isArray(x.products)||!Array.isArray(x.sales))throw Error('Formato inválido');if(!confirm('Esto reemplazará los datos locales actuales. ¿Continuar?'))return;db={products:x.products,sales:x.sales};cart=[];save();note('backupMsg','Respaldo restaurado. Verifica el inventario e historial.')}catch{note('backupMsg','No se pudo importar: archivo inválido o dañado.')}finally{e.target.value=''}};
-$('clearBtn').onclick=()=>{if(!confirm('¿Borrar TODOS los productos y ventas locales? Esta acción es irreversible sin respaldo.'))return;db={products:[],sales:[]};cart=[];save();note('backupMsg','Se borraron los datos locales.');};
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());if(x.format!=='NOVA_DIGITEX_LOCAL_BACKUP'||!Array.isArray(x.products)||!Array.isArray(x.sales))throw Error('Formato inválido');if(!confirm('Esto reemplazará los datos locales actuales. ¿Continuar?'))return;db={products:x.products,sales:x.sales,pendingSync:Array.isArray(x.pendingSync)?x.pendingSync:[]};cart=[];save();note('backupMsg','Respaldo restaurado. Verifica el inventario e historial.')}catch{note('backupMsg','No se pudo importar: archivo inválido o dañado.')}finally{e.target.value=''}};
+$('clearBtn').onclick=()=>{if(!confirm('¿Borrar TODOS los productos y ventas locales? Esta acción es irreversible sin respaldo.'))return;db={products:[],sales:[],pendingSync:[]};cart=[];save();note('backupMsg','Se borraron los datos locales.');};
 renderAll();
 })();
 </script>
