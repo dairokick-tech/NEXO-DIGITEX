@@ -7,6 +7,13 @@ self.addEventListener('fetch',event=>{
   if(request.method!=='GET')return;
   const url=new URL(request.url);
   if(url.origin!==self.location.origin)return;
-  if(request.mode==='navigate')event.respondWith(fetch(request).then(response=>{const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put('./pos.html',copy));return response}).catch(()=>caches.match('./pos.html')));
-  else event.respondWith(caches.match(request).then(cached=>cached||fetch(request)));
+  const isPosPage=url.pathname.endsWith('/pos.html') || url.pathname==='/pos.html';
+  if(request.mode==='navigate' && isPosPage){
+    event.respondWith(fetch(request).then(response=>{
+      if(response.ok){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put('./pos.html',copy));}
+      return response;
+    }).catch(()=>caches.match('./pos.html')));
+  } else if(url.pathname.endsWith('/manifest.webmanifest') || url.pathname.endsWith('/pos.html')) {
+    event.respondWith(caches.match(request).then(cached=>cached||fetch(request)));
+  }
 });
