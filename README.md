@@ -37,3 +37,11 @@ El sitio estático puede publicarse desde Netlify conectando este repositorio y 
 7. Empaquetar y probar las versiones Windows y Android.
 
 No se deben presentar cifras de muestra como datos reales.
+
+## Actualización de desarrollo (rama `nova-digitex-build`)
+
+- El POS local ahora intenta escribir la venta y el stock actualizado en una sola operación de almacenamiento antes de mostrar la venta como registrada. Si el navegador no permite guardar, muestra un error y no imprime un ticket de venta guardada.
+- Se actualizó `sw.js` para mantener en caché la pantalla del POS y el manifiesto, permitiendo volver a abrir la interfaz sin conexión después de la primera carga HTTPS.
+- Las ventas del POS local siguen guardadas en el navegador de cada dispositivo. **No se sincronizan automáticamente con Supabase ni con otros equipos.**
+- El ticket impreso es interno y no reemplaza boleta/factura electrónica SUNAT.
+- Pruebas pendientes: consultar `docs/PRUEBAS_POS_NOVA_DIGITEX.md`. Los cambios de código no deben considerarse certificados hasta ejecutar ese checklist en navegadores y dispositivos reales.
