@@ -40,7 +40,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const uid=()=>('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
 let db=loadDb(),cart=[];
 function loadDb(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');return{products:Array.isArray(x.products)?x.products:[],sales:Array.isArray(x.sales)?x.sales:[]}}catch{return{products:[],sales:[]}}}
-function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db));renderAll();return true}catch(err){console.error('No se pudieron guardar los datos locales:',err);note('backupMsg','No se pudo guardar en este dispositivo (posible falta de espacio). Exporta un respaldo y libera espacio antes de continuar.');return false}}
 function note(id,msg){$(id).textContent=msg}
 function setNet(){const el=$('netStatus');el.textContent=navigator.onLine?'Modo local · conexión disponible':'Sin internet · modo local';el.classList.toggle('off',!navigator.onLine)}
 window.addEventListener('online',setNet);window.addEventListener('offline',setNet);setNet();
