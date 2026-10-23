@@ -708,12 +708,7 @@ setupDashboardToggles();
     message(msg,'Acceso denegado: esta entrada es exclusiva del Superadministrador.',true);
     return;
   }
-  if(accessMode==='client'&&isSuperadmin){
-    await client.auth.signOut();
-    showGate();
-    message(msg,'Panel Empresas: se cerró la sesión de Superadministrador para mostrar el acceso empresarial. Ingresa con el correo y contraseña de tu empresa.',false);
-    return;
-  }
+  // El rol de Superadministrador tiene prioridad sobre el modo de acceso de la URL.
   hideGate();
   const adminNav=document.querySelector('#nav button[data-page="admin"]');
   if(adminNav)adminNav.style.display=isSuperadmin?'':'none';
