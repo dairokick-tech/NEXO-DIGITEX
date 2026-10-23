@@ -45,3 +45,8 @@ No se deben presentar cifras de muestra como datos reales.
 - Las ventas del POS local siguen guardadas en el navegador de cada dispositivo. **No se sincronizan automáticamente con Supabase ni con otros equipos.**
 - El ticket impreso es interno y no reemplaza boleta/factura electrónica SUNAT.
 - Pruebas pendientes: consultar `docs/PRUEBAS_POS_NOVA_DIGITEX.md`. Los cambios de código no deben considerarse certificados hasta ejecutar ese checklist en navegadores y dispositivos reales.
+
+
+## Cola local offline (rama de desarrollo)
+
+Cada venta nueva del POS local se guarda con una operación pendiente `sale.create` e identificador único, y el encabezado muestra cuántas operaciones están pendientes. La cola se incluye en las copias JSON y se conserva al restaurarlas. Esto permite inspeccionar y respaldar las ventas pendientes, pero **todavía no las transmite ni las marca como sincronizadas**. Para completar la sincronización hace falta el procesador de servidor, conectado a la función de cobro real, con validación de empresa/permisos e idempotencia transaccional.
