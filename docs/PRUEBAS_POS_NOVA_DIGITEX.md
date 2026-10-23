@@ -11,11 +11,14 @@ Este checklist debe completarse en un entorno de pruebas antes de usar el POS co
 - [ ] Intentar vender más unidades que las disponibles; debe rechazarlo sin cambiar el stock.
 - [ ] Intentar cobrar en efectivo con importe insuficiente; debe rechazarlo.
 - [ ] Simular almacenamiento lleno o bloqueado. El POS no debe anunciar una venta como guardada si falla la persistencia.
-- [ ] Exportar un respaldo JSON, importar el mismo archivo en un perfil de prueba y comparar productos, ventas y existencias.
+- [ ] Registrar una venta y comprobar que aumenta el contador «Pendientes de sincronizar»; la operación pendiente debe conservar un identificador único.
+- [ ] Exportar un respaldo JSON, importar el mismo archivo en un perfil de prueba y comparar productos, ventas, existencias y operaciones pendientes.
 - [ ] Probar impresión de ticket en papel/PDF y confirmar que el texto indica que es un ticket interno, no un comprobante SUNAT.
 - [ ] Cerrar y volver a abrir el navegador; verificar que productos e historial siguen presentes.
 
 ## Pruebas de sincronización (pendientes)
+
+La cola local de ventas se guarda en el mismo archivo de datos del navegador y se incluye en el respaldo. Por ahora solo queda encolada localmente; no existe aún un procesador conectado que la envíe al servidor.
 
 - [ ] Implementar el procesador transaccional de `nexo_sync_operations` usando el esquema real de `nexo_pos_checkout`.
 - [ ] Validar cada campo del payload en servidor y comprobar rol, empresa, plan y estado de la empresa.
