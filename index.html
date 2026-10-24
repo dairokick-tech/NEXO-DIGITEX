@@ -1114,7 +1114,7 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
   
   // Fuerza el estado global de permisos del superadministrador y usa el router principal.
   if(window.nexoIsSuperadmin===true){window.nexoAllowedModules=Object.keys(moduleLabels);}
-  if(!window.showPage){alert('No se pudo abrir el módulo: falta el enrutador de la aplicación. Recarga la página.');return}
+  if(typeof window.showPage!=='function'&&typeof showPage==='function'){window.showPage=showPage}if(typeof window.showPage!=='function'){const target=document.getElementById('page-'+safeKey)||document.createElement('section');target.id='page-'+safeKey;target.className='pageview active';if(!target.isConnected)document.getElementById('otherPages').appendChild(target);document.querySelectorAll('.pageview').forEach(p=>{if(p!==target)p.classList.remove('active')});if(typeof renderModule==='function'){renderModule(safeKey,target).catch(e=>{target.innerHTML='<div class="module-alert err">Error al abrir el módulo: '+String(e&&e.message||e)+'</div>'});return}else{alert('No se pudo iniciar el módulo porque la aplicación no cargó su controlador principal. Recarga la página.');return}}
   
   if(key==='lector_barras'){
    const navScan=document.querySelector('#nav button[data-page="ventas"]');
