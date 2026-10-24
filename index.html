@@ -1099,7 +1099,7 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
   window.nexoActiveRubric=r.key;
   section.setAttribute("data-nexo-rubric-active",r.key);
   const allowedKeys=allowed();const visibleMods=r.mods.filter(k=>allowedKeys.has(k));
-  section.innerHTML='<div class="nexo-rubric-toolbar">'+(window.nexoIsSuperadmin===true?'<button type="button" class="nexo-rubric-back" >← Todos los rubros</button>':'')+'<div class="nexo-rubric-title"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><div><h2>'+r.label+'</h2><p>Estos son únicamente los módulos autorizados por tu plan.</p></div></div></div><div class="nexo-module-grid">'+visibleMods.map(k=>{
+  section.innerHTML='<div class="nexo-rubric-toolbar">'+(window.nexoIsSuperadmin===true?'<button type="button" class="nexo-rubric-back" data-nexo-back>← Todos los rubros</button>':'')+'<div class="nexo-rubric-title"><span class="nexo-rubric-icon">'+svg(r.icon)+'</span><div><h2>'+r.label+'</h2><p>Estos son únicamente los módulos autorizados por tu plan.</p></div></div></div><div class="nexo-module-grid">'+visibleMods.map(k=>{
    const label=moduleLabels[k]||k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
    return '<button type="button" class="nexo-module-tile"  data-nexo-module="'+k+'"><span class="nexo-rubric-icon">'+svg(moduleIcons[k]||'box')+'</span><strong>'+label+'</strong><small class="nexo-module-status">Abrir módulo →</small></button>';
   }).join('')+'</div>';
@@ -1107,6 +1107,10 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
  window.nexoSelectRubric=function(key){const r=rubricsForUser().find(x=>x.key===key);if(r){renderModules(r);window.scrollTo(0,0)}};
  window.nexoShowAllRubrics=function(){window.nexoActiveRubric=null;section.removeAttribute("data-nexo-rubric-active");section.innerHTML=rubricsMarkup();window.scrollTo(0,0)};
  window.nexoOpenModule=function(key){
+  // Fuerza el estado global de permisos del superadministrador y usa el router principal.
+  if(window.nexoIsSuperadmin===true){window.nexoAllowedModules=Object.keys(moduleLabels);}
+  if(!window.showPage){alert('No se pudo abrir el módulo: falta el enrutador de la aplicación. Recarga la página.');return}
+  
   if(key==='lector_barras'){
    const navScan=document.querySelector('#nav button[data-page="ventas"]');
    if(navScan&&typeof showPage==='function')showPage('ventas');
@@ -1126,8 +1130,8 @@ body.stats-mode #page-inicio>.nexo-rubric-home{display:none!important}
    window.showPage(key);
    window.setTimeout(function(){
     const active=document.querySelector('.pageview.active');
-    const isHome=active&&active.id==='page-inicio';
-    if(isHome && window.__nexoOpeningRubricModule===key){
+    const isHome=active&&active.id==='page-inicio'; const targetPage=document.getElementById('page-'+key); const targetActive=targetPage&&targetPage.classList.contains('active');
+    if((isHome||!targetActive) && window.__nexoOpeningRubricModule===key){
       const notice=document.createElement('div');
       notice.className='module-alert err';
       notice.textContent='No se pudo abrir "'+(moduleLabels[key]||key)+'". Verifica el rol y los módulos permitidos para esta cuenta.';
