@@ -87,6 +87,8 @@ begin
 end;
 $$;
 
+revoke all on function public.nexo_provision_company_workspace() from public, anon, authenticated;
+
 drop trigger if exists nexo_companies_auto_provision_workspace on public.nexo_companies;
 create trigger nexo_companies_auto_provision_workspace
 after insert on public.nexo_companies
