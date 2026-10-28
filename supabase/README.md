@@ -1,39 +1,33 @@
-# NOVA DIGITEX — Supabase Free prototype
+# NOVA DIGITEX — configuración de Supabase
 
-This repository is being prepared for a zero-cost prototype using **one Supabase Free project** with PostgreSQL row-level security (RLS) to isolate multiple companies. This is not one physical PostgreSQL database per company; Supabase Free project limits make that model unsuitable for many tenants.
+## Corregir el error `Could not find the table 'public.companies'`
 
-## Setup
+La migración inicial tenía un error de sintaxis al final de la función `complete_sale`. PostgreSQL revierte toda la transacción cuando una migración falla; por eso pueden faltar todas las tablas. **El archivo inicial ya está corregido en GitHub.**
 
-1. Create a Supabase project on the Free plan.
-2. Open **SQL Editor** in the Supabase dashboard.
-3. Run the migration in `supabase/migrations/202610270001_initial.sql`.
-4. In **Authentication → Providers**, enable the sign-in methods you intend to use.
-5. Use the project's **Project URL** and **publishable/anon key** only in the client application.
-6. Never put the `service_role` key, database password, or management API token in frontend code, a public repository, or a mobile APK.
+### Pasos para reparar el proyecto
 
-## What this migration provides
+1. Abre tu proyecto en [Supabase](https://supabase.com/dashboard).
+2. En el menú del proyecto, entra en **SQL Editor** y crea una consulta nueva.
+3. Abre el archivo [migración inicial corregida](./migrations/202610270001_initial.sql) en GitHub. Copia todo su contenido, desde el primer comentario hasta el final, y pégalo en SQL Editor.
+4. Pulsa **Run**. Espera que termine. Si muestra un error, no sigas a la siguiente migración: copia el texto del error para diagnosticarlo.
+5. Crea otra consulta nueva. Abre [migración de Superadministrador](./migrations/202610270002_platform_superadmin.sql), copia todo su contenido y pulsa **Run**.
+6. En Supabase, abre **Authentication → Users** y confirma que tu cuenta ya existe.
+7. Para asignar el rol global, en SQL Editor ejecuta esta consulta, sustituyendo el correo de ejemplo por el correo exacto de tu cuenta de inicio de sesión:
 
-- Company registry and business-rubro selection.
-- Memberships and roles (owner, admin, manager, cashier, inventory).
-- Tenant tables for products, customers, suppliers, cash sessions, sales, sale items, inventory movements and audit log.
-- RLS policies that restrict tenant data by authenticated membership.
-- `create_company(name, tax_id, business_type)` RPC that creates a company and assigns the signed-in user as owner.
-
-## Important limitations
-
-- This is a database foundation, not a finished POS interface or production deployment.
-- Multiple companies share this project's PostgreSQL instance; data isolation relies on RLS and must be tested before real use.
-- Some features need additional migrations and transaction-safe database functions: payment capture, stock decrement, returns, discounts/approval limits, company user invitations, role-specific write policies, offline sync/idempotency, backups, SUNAT electronic invoicing, rubro-specific inventory and restaurant workflows.
-- The SQL migration should be reviewed and tested in a disposable Supabase project before production. Do not use real customer or financial data in this prototype.
-- Supabase Free projects may pause after inactivity and have quotas; review current limits before sharing the prototype publicly.
-
-## Client configuration
-
-Set these in the web app's local environment (do not commit real values):
-
-```env
-VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR_PUBLISHABLE_OR_ANON_KEY
+```sql
+insert into public.platform_superadmins (user_id)
+select id from auth.users where lower(email) = lower('TU_CORREO_DE_SUPERADMIN')
+on conflict (user_id) do nothing;
 ```
 
-Only the public/publishable key belongs in client-side configuration. RLS is mandatory; never rely on hiding a company ID in the UI as a security boundary.
+Ejecuta ese último bloque solo tú, como propietario del proyecto Supabase. No lo pongas en el frontend ni compartas claves secretas.
+
+8. Vuelve a abrir la aplicación y recárgala. Si el error persiste después de que ambas migraciones terminaron correctamente, abre **Project Settings → API** y confirma que la API usa el esquema `public`; luego en SQL Editor ejecuta `NOTIFY pgrst, 'reload schema';`.
+
+## Importante
+
+- No compartas la contraseña de base de datos, la clave `service_role` ni tokens de administración.
+- La clave `sb_publishable` es una clave pública de cliente; la protección real depende de las políticas RLS.
+- El proyecto actual usa una base PostgreSQL compartida con aislamiento por empresa (RLS); no crea una base física distinta por empresa.
+- La migración SQL no se ejecuta automáticamente por estar guardada en GitHub. Debes ejecutarla en el SQL Editor de tu propio proyecto; no tengo acceso a tu sesión privada de Supabase para pulsar Run por ti.
+- Hasta terminar estos pasos y probar altas/ventas, NOVA DIGITEX debe considerarse un prototipo, no un POS listo para operaciones comerciales reales.
