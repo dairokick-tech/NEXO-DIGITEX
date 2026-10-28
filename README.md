@@ -1,53 +1,31 @@
 # NOVA DIGITEX
 
-Sistema POS multiempresa y multirrubro. Cada empresa registrada debe recibir recursos propios y una tienda online inicializada automáticamente.
+Prototipo de POS multiempresa y multirrubro. La etapa actual está orientada a **Supabase Free ($0/mes)**: varias empresas en un proyecto PostgreSQL, con aislamiento de filas mediante RLS.
 
-## Regla de creación de empresa
+## Empezar con Supabase Free
 
-Al registrar una empresa, el backend debe:
-1. Validar el usuario administrador y los datos de la empresa (incluido RUC cuando corresponda).
-2. Registrar la solicitud con estado `provisioning` e identificador idempotente.
-3. Crear una base de datos PostgreSQL exclusiva para esa empresa usando credenciales administrativas solo del servidor.
-4. Ejecutar las migraciones iniciales dentro de esa base.
-5. Crear el registro de tienda online, su slug único y configuración inicial.
-6. Marcar la empresa como `active` únicamente si todos los pasos terminan correctamente.
-7. Si falla un paso, marcar `provisioning_failed`, registrar el error sin secretos y permitir reintentar sin duplicar empresas, bases ni tiendas.
+1. Crea un proyecto en Supabase.
+2. Abre **SQL Editor** y ejecuta el archivo `supabase/migrations/202610270001_initial.sql`.
+3. Configura autenticación en el panel Supabase.
+4. Sigue `supabase/README.md` para conectar el cliente con la URL y la clave pública del proyecto.
+5. Verifica el aislamiento entre usuarios y empresas antes de usar datos reales.
 
-## Arquitectura
+## Qué incluye la migración inicial
 
-- `server/`: API Node.js/TypeScript para provisión segura de empresas, bases de datos y tiendas.
-- `server/sql/`: esquema de registro central y esquema inicial por empresa.
-- Base de registro central: guarda metadatos de empresas y el estado de provisión; nunca guarda contraseñas de clientes en texto plano.
-- Base PostgreSQL por empresa: ventas, productos, inventario, clientes, caja, pedidos, usuarios y auditoría.
-- Tienda online: URL propia con catálogo, precios, disponibilidad, carrito y pedidos. Los pedidos se guardan en la base de la empresa correspondiente.
+- Registro de empresas y selección de rubro.
+- Propietario y miembros por empresa.
+- Productos, clientes, proveedores, caja, ventas, detalle de venta, movimientos de inventario y auditoría.
+- Políticas RLS y función `create_company` para registrar una empresa y asignar al usuario autenticado como propietario.
 
-## Requisitos para ejecutar el backend
+## Arquitectura y límites del plan gratuito
 
-- Node.js 20+
-- PostgreSQL con permisos de creación de bases de datos para la cuenta de provisión.
-- Variables de entorno configuradas en el servidor (ver `server/.env.example`).
+- **Supabase Free usa una base PostgreSQL compartida por el proyecto**; las empresas se aíslan mediante políticas RLS. No crea una base física por empresa.
+- El plan gratuito tiene límites de proyectos y recursos; puede pausar proyectos inactivos. Revisa los límites vigentes en Supabase.
+- No se debe publicar ninguna clave `service_role`, token de gestión, contraseña de base de datos o secreto administrativo.
+- El backend anterior de aprovisionamiento PostgreSQL sigue en el repositorio como trabajo legado y no forma parte del flujo Supabase Free. No se debe desplegar como si ya estuviera integrado con Supabase.
 
-**Importante:** GitHub Pages solo publica archivos estáticos; no puede crear bases PostgreSQL ni guardar secretos. El backend debe desplegarse en un servidor compatible. Nunca poner `DATABASE_ADMIN_URL`, contraseñas PostgreSQL ni claves de servicio en el frontend.
+## Estado honesto del prototipo
 
-## Desarrollo
+La migración y la guía de Supabase se han añadido al repositorio, pero aún no se han ejecutado contra tu proyecto Supabase ni probado en un entorno real. Esto no es todavía un POS terminado. Falta la interfaz conectada, pruebas de seguridad RLS, flujos transaccionales de ventas e inventario, caja completa, sincronización offline, respaldos, módulos por rubro y la integración validada de comprobantes electrónicos SUNAT.
 
-```bash
-cd server
-npm install
-npm run dev
-```
-
-La API no debe considerarse lista para producción hasta añadir autenticación real, límites de uso, TLS, copias de seguridad, monitorización y pruebas de recuperación.
-
-## Levantar el entorno de prueba con Docker
-
-1. Instala Docker Engine y el complemento Docker Compose en un equipo o servidor.
-2. Copia `.env.example` a `.env` y cambia las cuatro contraseñas/secretos por valores aleatorios largos.
-3. Ejecuta `docker compose up --build -d`.
-4. Comprueba `http://localhost:8080/health`.
-5. Abre `http://localhost:8080/admin` para registrar una empresa y generar su tienda.
-6. La tienda se abre en `http://localhost:8080/tienda/tu-slug`.
-
-Este despliegue local crea la base central automáticamente al inicializar el volumen PostgreSQL. El esquema central se aplica al arrancar la API. Si cambias las contraseñas después de crear el volumen, tendrás que actualizar los roles existentes en PostgreSQL; las variables de inicialización solo se aplican al crear un volumen nuevo.
-
-**Para publicar en Internet:** despliega el conjunto en un servidor privado con Docker, dominio y HTTPS. No publiques el puerto de PostgreSQL. Usa un firewall, copias externas y un mecanismo de rotación de secretos. El alta de empresas es administrativa; no expongas el secreto en páginas públicas.
+No uses datos reales de clientes ni ventas hasta completar pruebas y revisión de seguridad.
