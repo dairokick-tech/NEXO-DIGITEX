@@ -173,6 +173,45 @@ app.post("/api/companies", async (request, reply) => {
 });
 
 
+app.post("/api/companies/:id/retry", async (request, reply) => {
+  const suppliedSecret = String(request.headers["x-provisioning-secret"] ?? "");
+  if (!safeSecretEqual(suppliedSecret, provisioningSecret!)) return reply.code(401).send({ error: "No autorizado." });
+  const companyId = String((request.params as { id: string }).id);
+  if (!/^[0-9a-f-]{36}$/i.test(companyId)) return reply.code(400).send({ error: "Identificador de empresa no válido." });
+  const found = await registry.query(
+    "SELECT id, trade_name, db_name, store_slug, provisioning_status FROM companies WHERE id=$1",
+    [companyId],
+  );
+  if (!found.rowCount) return reply.code(404).send({ error: "Empresa no encontrada." });
+  const company = found.rows[0];
+  if (company.provisioning_status === "active") return reply.code(200).send({ companyId, status: "active", storeUrl: `/tienda/${company.store_slug}`, reused: true });
+  try {
+    const quotedDb = safeIdentifier(company.db_name);
+    const exists = await admin.query("SELECT 1 FROM pg_database WHERE datname=$1", [company.db_name]);
+    if (!exists.rowCount) await admin.query(`CREATE DATABASE ${quotedDb}`);
+    const tenantUrl = new URL(adminUrl!);
+    tenantUrl.pathname = "/" + company.db_name;
+    const tenant = new Pool({ connectionString: tenantUrl.toString(), max: 2, ssl: pgSsl });
+    try {
+      const tenantSql = await readFile(path.resolve(process.cwd(), "sql/tenant-initial.sql"), "utf8");
+      await tenant.query(tenantSql);
+    } finally {
+      await tenant.end();
+    }
+    await registry.query(
+      "INSERT INTO online_stores (company_id, slug, display_name) VALUES ($1,$2,$3) ON CONFLICT (company_id) DO UPDATE SET slug=EXCLUDED.slug, display_name=EXCLUDED.display_name, enabled=true",
+      [company.id, company.store_slug, company.trade_name],
+    );
+    await registry.query("UPDATE companies SET provisioning_status='active', activated_at=COALESCE(activated_at,now()), provisioning_error=NULL WHERE id=$1", [companyId]);
+    await registry.query("UPDATE provisioning_requests SET status='completed', updated_at=now() WHERE company_id=$1", [companyId]);
+    return reply.code(200).send({ companyId, status: "active", database: "ready", onlineStore: "ready", storeUrl: `/tienda/${company.store_slug}` });
+  } catch (error) {
+    request.log.error({ err: error, companyId }, "No se pudo reintentar provisión");
+    await registry.query("UPDATE companies SET provisioning_status='provisioning_failed', provisioning_error=$2 WHERE id=$1", [companyId, "El reintento falló; revisar los logs del servidor."]).catch(() => undefined);
+    return reply.code(500).send({ error: "No se pudo completar el reintento de provisión." });
+  }
+});
+
 const StoreSlug = z.string().trim().toLowerCase().min(3).max(50).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const PublicOrderInput = z.object({
   customerName: z.string().trim().min(2).max(140),
