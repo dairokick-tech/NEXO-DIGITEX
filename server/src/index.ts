@@ -47,7 +47,10 @@ function safeSecretEqual(a: string, b: string): boolean {
 function requestHash(input: z.infer<typeof CompanyInput>): string {
   return createHash("sha256").update(JSON.stringify(input)).digest("hex");
 }
-function escapeHtml(value: string): string {\n  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\\\"", "&quot;").replaceAll("\\u0027", "&#39;");\n}\nfunction databaseName(): string {
+function escapeHtml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+function databaseName(): string {
   return (prefix + randomUUID().replaceAll("-", "").slice(0, 24)).slice(0, 63);
 }
 
