@@ -41,3 +41,14 @@ curl -X POST "$NOVA_API_URL/api/companies" \
 
 ## Estado y límites
 Esta es una base funcional inicial, no un sistema listo para producción. Antes de abrir registros públicos, añade autenticación administrativa real (OIDC/JWT), autorización por roles, rate limiting, protección contra spam, monitorización, backups/restauración probados y una estrategia de reintentos de aprovisionamiento. La integración SUNAT y el cobro online no están incluidos en esta etapa.
+
+## Reintentar una provisión fallida
+
+Si una empresa queda con estado `provisioning_failed`, el administrador puede repetir la preparación sin crear una empresa nueva:
+
+```bash
+curl -X POST "$NOVA_API_URL/api/companies/ID-DE-EMPRESA/retry" \
+  -H "x-provisioning-secret: $PROVISIONING_SECRET"
+```
+
+El endpoint comprueba si la base ya existe, vuelve a aplicar las tablas idempotentes y prepara la tienda. Protege esta operación con HTTPS y conserva el secreto solo en el servidor/administrador.
