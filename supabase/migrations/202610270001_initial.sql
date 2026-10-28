@@ -250,4 +250,82 @@ grant select, insert, update, delete on public.products, public.customers, publi
 grant select, insert on public.audit_log to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
 
+
+-- Registrar una venta y descontar inventario en una única transacción.
+-- El cliente solo envía IDs/cantidades; el precio se toma del catálogo del servidor.
+create or replace function public.complete_sale(
+  _company_id uuid,
+  _customer_id uuid,
+  _payment_method text,
+  _items jsonb
+) returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  v_sale_id uuid;
+  v_item jsonb;
+  v_product public.products%rowtype;
+  v_qty numeric(14,3);
+  v_line_total numeric(12,2);
+  v_total numeric(12,2) := 0;
+begin
+  if auth.uid() is null then raise exception 'Debes iniciar sesión.'; end if;
+  if not public.has_company_role(_company_id, array['owner','admin','manager','cashier']) then
+    raise exception 'No tienes permiso para registrar ventas en esta empresa.';
+  end if;
+  if _payment_method not in ('cash','card','transfer','wallet','credit','mixed') then
+    raise exception 'Medio de pago no válido.';
+  end if;
+  if _items is null or jsonb_typeof(_items) <> 'array' or jsonb_array_length(_items) = 0 then
+    raise exception 'La venta debe contener al menos un producto.';
+  end if;
+  if _customer_id is not null and not exists (
+    select 1 from public.customers c where c.id = _customer_id and c.company_id = _company_id
+  ) then raise exception 'El cliente no pertenece a esta empresa.'; end if;
+
+  -- Lock rows in ID order to reduce stock races and deadlocks.
+  for v_item in
+    select value from jsonb_array_elements(_items)
+    order by (value->>'product_id')::uuid
+  loop
+    if coalesce(v_item->>'product_id','') = '' then raise exception 'Producto no válido.'; end if;
+    v_qty := (v_item->>'quantity')::numeric;
+    if v_qty <= 0 then raise exception 'Cantidad no válida.'; end if;
+    select * into v_product from public.products
+      where id = (v_item->>'product_id')::uuid and company_id = _company_id and active = true
+      for update;
+    if not found then raise exception 'Producto no encontrado o inactivo.'; end if;
+    if v_product.stock < v_qty then raise exception 'Stock insuficiente para: %', v_product.name; end if;
+    v_total := v_total + round(v_product.price * v_qty, 2);
+  end loop;
+
+  insert into public.sales(company_id,customer_id,cashier_id,status,payment_method,subtotal,discount,tax,total)
+    values(_company_id,_customer_id,auth.uid(),'completed',_payment_method,v_total,0,0,v_total)
+    returning id into v_sale_id;
+
+  for v_item in select value from jsonb_array_elements(_items)
+  loop
+    v_qty := (v_item->>'quantity')::numeric;
+    select * into v_product from public.products
+      where id = (v_item->>'product_id')::uuid and company_id = _company_id and active = true
+      for update;
+    v_line_total := round(v_product.price * v_qty, 2);
+    insert into public.sale_items(company_id,sale_id,product_id,description,quantity,unit_price,discount,line_total)
+      values(_company_id,v_sale_id,v_product.id,v_product.name,v_qty,v_product.price,0,v_line_total);
+    update public.products set stock = stock - v_qty where id = v_product.id and company_id = _company_id;
+    insert into public.inventory_movements(company_id,product_id,movement_type,quantity,reference,created_by)
+      values(_company_id,v_product.id,'sale',-v_qty,v_sale_id::text,auth.uid());
+  end loop;
+
+  insert into public.audit_log(company_id,actor_id,action,entity_type,entity_id,details)
+    values(_company_id,auth.uid(),'sale.completed','sale',v_sale_id::text,
+      jsonb_build_object('total',v_total,'payment_method',_payment_method,'items_count',jsonb_array_length(_items)));
+  return v_sale_id;
+end;
+$;
+revoke all on function public.complete_sale(uuid,uuid,text,jsonb) from public;
+grant execute on function public.complete_sale(uuid,uuid,text,jsonb) to authenticated;
+
 commit;
