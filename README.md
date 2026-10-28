@@ -38,3 +38,16 @@ npm run dev
 ```
 
 La API no debe considerarse lista para producción hasta añadir autenticación real, límites de uso, TLS, copias de seguridad, monitorización y pruebas de recuperación.
+
+## Levantar el entorno de prueba con Docker
+
+1. Instala Docker Engine y el complemento Docker Compose en un equipo o servidor.
+2. Copia `.env.example` a `.env` y cambia las cuatro contraseñas/secretos por valores aleatorios largos.
+3. Ejecuta `docker compose up --build -d`.
+4. Comprueba `http://localhost:8080/health`.
+5. Abre `http://localhost:8080/admin` para registrar una empresa y generar su tienda.
+6. La tienda se abre en `http://localhost:8080/tienda/tu-slug`.
+
+Este despliegue local crea la base central automáticamente al inicializar el volumen PostgreSQL. El esquema central se aplica al arrancar la API. Si cambias las contraseñas después de crear el volumen, tendrás que actualizar los roles existentes en PostgreSQL; las variables de inicialización solo se aplican al crear un volumen nuevo.
+
+**Para publicar en Internet:** despliega el conjunto en un servidor privado con Docker, dominio y HTTPS. No publiques el puerto de PostgreSQL. Usa un firewall, copias externas y un mecanismo de rotación de secretos. El alta de empresas es administrativa; no expongas el secreto en páginas públicas.
