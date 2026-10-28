@@ -11,12 +11,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const $=id=>document.getElementById(id);
 let supabase=null,user=null,company=null,section='dashboard',products=[],customers=[],cart=[];
 const cfgKey='nova-digitex-supabase-config';
+const defaultSupabase={url:'https://jznbuxqgsmvjkcgdbigv.supabase.co',key:'sb_publishable_3a3d38-EqFwPMKdDOqiO3Q_1XvdfZbW'};
 const labels={dashboard:'Resumen',products:'Productos e inventario',customers:'Clientes',sales:'Ventas',history:'Historial de ventas',settings:'Conexión'};
 const types={general:'General',minimarket:'Bodega / minimarket',clothing:'Ropa y calzado',hardware:'Ferretería',pharmacy:'Farmacia / botica',restaurant:'Restaurante',bookstore:'Librería',electronics:'Electrónica y repuestos',wholesale:'Distribuidora / mayorista',agriculture:'Agricultura',lodging:'Hospedaje'};
 function msg(text,type='notice'){const e=$('app').classList.contains('hidden')?$('messageAuth'):$('messageApp');e.textContent=text;e.className='notice '+type;e.classList.remove('hidden')}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function money(n){return new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(Number(n||0))}
-function config(){try{return JSON.parse(localStorage.getItem(cfgKey)||'{}')}catch{return {}}}
+function config(){try{const saved=JSON.parse(localStorage.getItem(cfgKey)||'{}');return {url:saved.url||defaultSupabase.url,key:saved.key||defaultSupabase.key}}catch{return {...defaultSupabase}}}
 function connect(){const c=config();const url=$('sburl').value.trim(),key=$('sbkey').value.trim();if(!/^https:\/\/[\w.-]+\.supabase\.co$/.test(url)||!key){msg('Ingresa la URL del proyecto y la clave anon/publishable pública de Supabase. Nunca uses service_role.','error');return}localStorage.setItem(cfgKey,JSON.stringify({url,key}));supabase=createClient(url,key);$('connection').textContent='Configuración guardada';msg('Configuración guardada en este dispositivo. Inicia sesión o crea una cuenta.','success')}
 async function init(){const c=config();$('sburl').value=c.url||'';$('sbkey').value=c.key||'';if(c.url&&c.key){supabase=createClient(c.url,c.key);const {data}=await supabase.auth.getSession();if(data.session){user=data.session.user;await enter()}}}
 async function auth(mode){if(!supabase){msg('Primero configura la conexión con Supabase.','error');return}const email=$('email').value.trim(),password=$('password').value;if(!email||!password){msg('Completa correo y contraseña.','error');return}let r=mode==='signup'?await supabase.auth.signUp({email,password}):await supabase.auth.signInWithPassword({email,password});if(r.error){msg(r.error.message,'error');return}if(mode==='signup'&&!r.data.session){msg('Cuenta creada. Revisa tu correo para confirmar el registro y luego inicia sesión.','success');return}user=r.data.user;await enter()}
