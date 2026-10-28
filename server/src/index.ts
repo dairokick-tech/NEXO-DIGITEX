@@ -145,6 +145,126 @@ app.post("/api/companies", async (request, reply) => {
   }
 });
 
+
+const StoreSlug = z.string().trim().toLowerCase().min(3).max(50).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const PublicOrderInput = z.object({
+  customerName: z.string().trim().min(2).max(140),
+  customerPhone: z.string().trim().max(30).optional(),
+  customerEmail: z.string().trim().email().max(180).optional(),
+  deliveryAddress: z.string().trim().max(500).optional(),
+  items: z.array(z.object({
+    productId: z.string().uuid(),
+    quantity: z.number().positive().max(10000),
+  })).min(1).max(100),
+});
+
+async function findActiveStore(slug: string) {
+  const found = await registry.query(
+    "SELECT c.id AS company_id, c.db_name, c.trade_name, s.slug, s.display_name, s.currency FROM companies c JOIN online_stores s ON s.company_id=c.id WHERE s.slug=$1 AND s.enabled=true AND c.provisioning_status='active'",
+    [slug],
+  );
+  return found.rows[0] as { company_id: string; db_name: string; trade_name: string; slug: string; display_name: string; currency: string } | undefined;
+}
+async function tenantPool(dbName: string): Promise<Pool> {
+  safeIdentifier(dbName);
+  const url = new URL(adminUrl!);
+  url.pathname = "/" + dbName;
+  return new Pool({
+    connectionString: url.toString(),
+    max: 3,
+    ssl: process.env.PGSSL === "true" ? { rejectUnauthorized: true } : undefined,
+  });
+}
+
+app.get("/api/store/:slug", async (request, reply) => {
+  const parsed = StoreSlug.safeParse((request.params as { slug: string }).slug);
+  if (!parsed.success) return reply.code(400).send({ error: "Enlace de tienda no válido." });
+  const store = await findActiveStore(parsed.data);
+  if (!store) return reply.code(404).send({ error: "Tienda no encontrada o no publicada." });
+  const tenant = await tenantPool(store.db_name);
+  try {
+    const products = await tenant.query(
+      "SELECT id, sku, barcode, name, description, category, price, stock, image_url FROM products WHERE active=true AND online_visible=true AND stock>0 ORDER BY name LIMIT 500",
+    );
+    return { store: { name: store.display_name, slug: store.slug, currency: store.currency }, products: products.rows };
+  } finally {
+    await tenant.end();
+  }
+});
+
+app.post("/api/store/:slug/orders", async (request, reply) => {
+  const slug = StoreSlug.safeParse((request.params as { slug: string }).slug);
+  if (!slug.success) return reply.code(400).send({ error: "Enlace de tienda no válido." });
+  const parsed = PublicOrderInput.safeParse(request.body);
+  if (!parsed.success) return reply.code(400).send({ error: "Datos de pedido inválidos.", details: parsed.error.flatten() });
+  const idempotencyKey = String(request.headers["idempotency-key"] ?? "").trim();
+  if (idempotencyKey.length < 16 || idempotencyKey.length > 120) {
+    return reply.code(400).send({ error: "Envía una cabecera Idempotency-Key de 16 a 120 caracteres." });
+  }
+  const store = await findActiveStore(slug.data);
+  if (!store) return reply.code(404).send({ error: "Tienda no encontrada o no publicada." });
+  const tenant = await tenantPool(store.db_name);
+  const client = await tenant.connect();
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query("SELECT id, order_number, status, total FROM online_orders WHERE idempotency_key=$1", [idempotencyKey]);
+    if (existing.rowCount) {
+      await client.query("ROLLBACK");
+      return reply.code(200).send({ order: existing.rows[0], reused: true });
+    }
+
+    // Combine duplicate product IDs before locking rows, then validate availability in this tenant database only.
+    const quantities = new Map<string, number>();
+    for (const item of parsed.data.items) quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
+    const ids = [...quantities.keys()];
+    const selected = await client.query(
+      "SELECT id, name, price, stock FROM products WHERE id = ANY($1::uuid[]) AND active=true AND online_visible=true FOR UPDATE",
+      [ids],
+    );
+    if (selected.rowCount !== ids.length) {
+      await client.query("ROLLBACK");
+      return reply.code(400).send({ error: "Uno o más productos ya no están disponibles." });
+    }
+    const products = new Map(selected.rows.map((p) => [p.id as string, p]));
+    let subtotal = 0;
+    const lines = ids.map((id) => {
+      const product = products.get(id)!;
+      const quantity = quantities.get(id)!;
+      if (Number(product.stock) < quantity) throw new Error("STOCK_INSUFFICIENT");
+      const unitPrice = Number(product.price);
+      const lineTotal = Math.round(unitPrice * quantity * 100) / 100;
+      subtotal += lineTotal;
+      return { id, name: product.name as string, quantity, unitPrice, lineTotal };
+    });
+    subtotal = Math.round(subtotal * 100) / 100;
+
+    const created = await client.query(
+      "INSERT INTO online_orders (customer_name, customer_phone, customer_email, delivery_address, status, subtotal, delivery_fee, total, idempotency_key) VALUES ($1,$2,$3,$4,'new',$5,0,$5,$6) RETURNING id, order_number, status, total, created_at",
+      [parsed.data.customerName, parsed.data.customerPhone ?? null, parsed.data.customerEmail ?? null, parsed.data.deliveryAddress ?? null, subtotal, idempotencyKey],
+    );
+    const order = created.rows[0];
+    for (const line of lines) {
+      await client.query(
+        "INSERT INTO online_order_items (order_id, product_id, product_name, quantity, unit_price, line_total) VALUES ($1,$2,$3,$4,$5,$6)",
+        [order.id, line.id, line.name, line.quantity, line.unitPrice, line.lineTotal],
+      );
+      await client.query("UPDATE products SET stock=stock-$1 WHERE id=$2", [line.quantity, line.id]);
+    }
+    await client.query("COMMIT");
+    return reply.code(201).send({ order, message: "Pedido recibido. La empresa debe confirmar su preparación y entrega." });
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    if (error instanceof Error && error.message === "STOCK_INSUFFICIENT") {
+      return reply.code(409).send({ error: "Stock insuficiente para uno de los productos." });
+    }
+    request.log.error({ err: error, storeSlug: slug.data }, "No se pudo registrar pedido online");
+    return reply.code(500).send({ error: "No se pudo registrar el pedido." });
+  } finally {
+    client.release();
+    await tenant.end();
+  }
+});
+
 app.setErrorHandler((error, request, reply) => {
   request.log.error({ err: error }, "Error no controlado");
   reply.code(500).send({ error: "Error interno del servidor." });
