@@ -47,7 +47,7 @@ function safeSecretEqual(a: string, b: string): boolean {
 function requestHash(input: z.infer<typeof CompanyInput>): string {
   return createHash("sha256").update(JSON.stringify(input)).digest("hex");
 }
-function databaseName(): string {
+function escapeHtml(value: string): string {\n  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\\\"", "&quot;").replaceAll("\\u0027", "&#39;");\n}\nfunction databaseName(): string {
   return (prefix + randomUUID().replaceAll("-", "").slice(0, 24)).slice(0, 63);
 }
 
@@ -271,12 +271,12 @@ app.get("/tienda/:slug", async (request, reply) => {
   if (!slug.success) return reply.code(404).type("text/plain").send("Tienda no encontrada");
   const store = await findActiveStore(slug.data);
   if (!store) return reply.code(404).type("text/html; charset=utf-8").send("<h1>Tienda no encontrada</h1><p>Esta tienda aún no está publicada.</p>");
-  const html = String.raw`<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101c3b"><title>${store.display_name} | NOVA DIGITEX</title>
+  const safeStoreName = escapeHtml(store.display_name);\n  const html = String.raw`<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101c3b"><title>${safeStoreName} | NOVA DIGITEX</title>
 <style>
 :root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}.top{background:#101c3b;color:white;padding:24px max(20px,calc((100% - 1100px)/2));display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{font-weight:800;font-size:22px}.tag{font-size:12px;color:#b9c7e7}.wrap{max-width:1100px;margin:auto;padding:28px 18px}.intro h1{margin:0 0 6px;font-size:clamp(26px,4vw,38px)}.intro p{color:#65718a;margin:0 0 24px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:22px}.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}.card,.cart{background:white;border:1px solid #e4e8f0;border-radius:16px;overflow:hidden}.photo{height:145px;background:#edf1f8;display:grid;place-items:center;color:#8290a8;font-size:13px}.photo img{width:100%;height:100%;object-fit:cover}.details{padding:14px}.details h3{font-size:15px;margin:0 0 8px}.price{font-weight:800;font-size:20px;margin:8px 0 12px}.muted{color:#758098;font-size:12px}.btn{border:0;background:#315eea;color:white;font-weight:700;padding:11px 14px;border-radius:10px;cursor:pointer}.btn:disabled{opacity:.4;cursor:not-allowed}.cart{padding:18px;height:max-content;position:sticky;top:14px}.cart h2{margin:0 0 14px;font-size:18px}.cartline{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #edf0f5;padding:10px 0;font-size:13px}.field{width:100%;border:1px solid #dbe1eb;border-radius:9px;padding:11px;margin:6px 0 10px;font:inherit}.total{display:flex;justify-content:space-between;font-size:18px;font-weight:800;margin:16px 0}.notice{padding:12px;border-radius:10px;background:#eaf7ef;color:#166534;margin:12px 0;display:none}.empty{padding:30px;color:#758098;text-align:center;background:white;border-radius:14px}.foot{text-align:center;padding:26px;color:#8791a4;font-size:12px}@media(max-width:760px){.layout{grid-template-columns:1fr}.cart{position:static;order:-1}.top{align-items:flex-start;flex-direction:column}.products{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.products{grid-template-columns:1fr 1fr;gap:9px}.photo{height:110px}.details{padding:10px}.price{font-size:17px}.btn{padding:10px;font-size:12px}}
 </style></head><body>
-<header class="top"><div><div class="brand" id="storeName">${store.display_name}</div><div class="tag">TIENDA ONLINE · NOVA DIGITEX</div></div><div class="tag">Compra directamente a la empresa</div></header>
+<header class="top"><div><div class="brand" id="storeName">${safeStoreName}</div><div class="tag">TIENDA ONLINE · NOVA DIGITEX</div></div><div class="tag">Compra directamente a la empresa</div></header>
 <main class="wrap"><section class="intro"><h1>Catálogo de productos</h1><p>Elige tus productos y envía tu pedido a la tienda.</p></section>
 <div id="notice" class="notice" role="status"></div><div class="layout"><section><div id="products" class="products"><div class="empty">Cargando catálogo…</div></div></section>
 <aside class="cart"><h2>Tu pedido</h2><div id="cartLines" class="muted">Aún no agregas productos.</div><div class="total"><span>Total</span><span id="total">S/ 0.00</span></div>
