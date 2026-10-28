@@ -281,6 +281,11 @@ begin
   if _items is null or jsonb_typeof(_items) <> 'array' or jsonb_array_length(_items) = 0 then
     raise exception 'La venta debe contener al menos un producto.';
   end if;
+  if exists (
+    select 1 from jsonb_array_elements(_items) e
+    group by e.value->>'product_id'
+    having count(*) > 1
+  ) then raise exception 'No repitas productos en el detalle de venta.'; end if;
   if _customer_id is not null and not exists (
     select 1 from public.customers c where c.id = _customer_id and c.company_id = _company_id
   ) then raise exception 'El cliente no pertenece a esta empresa.'; end if;
