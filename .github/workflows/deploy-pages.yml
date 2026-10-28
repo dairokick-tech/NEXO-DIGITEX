@@ -30,10 +30,12 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Validate static entrypoint
         run: test -s index.html
+      - name: Prepare public site only
+        run: mkdir -p dist && cp index.html dist/index.html
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
