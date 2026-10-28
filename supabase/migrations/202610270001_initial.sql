@@ -224,7 +224,7 @@ drop policy if exists sale_items_company_access on public.sale_items;
 create policy sale_items_company_access on public.sale_items for all to authenticated
   using (public.is_company_member(company_id))
   with check (public.is_company_member(company_id) and exists (
-    select 1 from public.sales s where s.id = sale_id and s.company_id = company_id
+    select 1 from public.sales s where s.id = sale_id and s.company_id = sale_items.company_id
   ));
 drop policy if exists inventory_company_access on public.inventory_movements;
 create policy inventory_company_access on public.inventory_movements for all to authenticated
