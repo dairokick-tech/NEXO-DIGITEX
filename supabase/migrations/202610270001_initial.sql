@@ -202,15 +202,15 @@ create policy members_read_same_company on public.company_members for select to 
   using (public.is_company_member(company_id));
 drop policy if exists products_company_access on public.products;
 create policy products_company_access on public.products for all to authenticated
-  using (public.is_company_member(company_id))
-  with check (public.has_company_role(company_id, array['owner','admin','manager','inventory','cashier']));
+  using (public.has_company_role(company_id, array['owner','admin','manager','inventory']))
+  with check (public.has_company_role(company_id, array['owner','admin','manager','inventory']));
 drop policy if exists customers_company_access on public.customers;
 create policy customers_company_access on public.customers for all to authenticated
-  using (public.is_company_member(company_id))
+  using (public.has_company_role(company_id, array['owner','admin','manager','cashier']))
   with check (public.has_company_role(company_id, array['owner','admin','manager','cashier']));
 drop policy if exists suppliers_company_access on public.suppliers;
 create policy suppliers_company_access on public.suppliers for all to authenticated
-  using (public.is_company_member(company_id))
+  using (public.has_company_role(company_id, array['owner','admin','manager','inventory']))
   with check (public.has_company_role(company_id, array['owner','admin','manager','inventory']));
 drop policy if exists cash_sessions_company_access on public.cash_sessions;
 create policy cash_sessions_company_access on public.cash_sessions for all to authenticated
@@ -222,8 +222,8 @@ create policy sales_company_access on public.sales for all to authenticated
   with check (public.has_company_role(company_id, array['owner','admin','manager','cashier']));
 drop policy if exists sale_items_company_access on public.sale_items;
 create policy sale_items_company_access on public.sale_items for all to authenticated
-  using (public.is_company_member(company_id))
-  with check (public.is_company_member(company_id) and exists (
+  using (public.has_company_role(company_id, array['owner','admin','manager','cashier']))
+  with check (public.has_company_role(company_id, array['owner','admin','manager','cashier']) and exists (
     select 1 from public.sales s where s.id = sale_id and s.company_id = sale_items.company_id
   ));
 drop policy if exists inventory_company_access on public.inventory_movements;
