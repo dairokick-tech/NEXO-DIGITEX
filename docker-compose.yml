@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copia .env.example a .env y configura contraseñas}
+      REGISTRY_PASSWORD: ${REGISTRY_PASSWORD:?Configura REGISTRY_PASSWORD}
+      PROVISIONER_PASSWORD: ${PROVISIONER_PASSWORD:?Configura PROVISIONER_PASSWORD}
+    volumes:
+      - nova_postgres_data:/var/lib/postgresql/data
+      - ./server/sql/docker-init.sh:/docker-entrypoint-initdb.d/01-nova-init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [nova_internal]
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      HOST: 0.0.0.0
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      REGISTRY_DATABASE_URL: postgresql://nova_registry_user:${REGISTRY_PASSWORD}@db:5432/nova_registry
+      DATABASE_ADMIN_URL: postgresql://nova_provisioner:${PROVISIONER_PASSWORD}@db:5432/postgres
+      PROVISIONING_SECRET: ${PROVISIONING_SECRET:?Configura PROVISIONING_SECRET}
+      TENANT_DB_PREFIX: nova_company_
+      PGSSL: ${PGSSL:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks: [nova_internal]
+
+volumes:
+  nova_postgres_data:
+
+networks:
+  nova_internal:
+    driver: bridge
