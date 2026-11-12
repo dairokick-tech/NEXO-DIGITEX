@@ -1,4 +1,4 @@
-name: Deploy NOVA DIGITEX to GitHub Pages
+name: Deploy GESTOR DE PAGOS to GitHub Pages
 
 on:
   push:
